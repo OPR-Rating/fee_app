@@ -81,6 +81,21 @@
   .plist .fee { font-weight: 600; white-space: nowrap; }
   .empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 15px; }
 
+  /* Front door */
+  .door-hero { text-align: center; padding: 10px 8px 18px; }
+  .door-hero img { width: 72px; height: 72px; object-fit: contain; border-radius: 12px; margin-bottom: 8px; }
+  .door-hero h2 { font-size: 20px; font-weight: 700; }
+  .door-hero p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .door-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tile { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 12px 14px; text-align: left; cursor: pointer; font: inherit; color: var(--ink); display: flex; flex-direction: column; gap: 6px; min-height: 112px; }
+  .tile .ic { width: 34px; height: 34px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; }
+  .tile b { font-size: 15px; line-height: 1.2; }
+  .tile small { font-size: 11px; color: var(--muted); line-height: 1.3; }
+  .tile.soon { opacity: 0.55; }
+  .tile.soon .ic { background: var(--muted); }
+  .tile .soonTag { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn); font-weight: 600; }
+  .tile:active { transform: scale(0.98); }
+
   /* Proposal document */
   .doc { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 20px 18px; margin-bottom: 12px; }
   .doc .head { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid var(--accent); padding-bottom: 14px; margin-bottom: 14px; }
@@ -126,8 +141,19 @@
     <button id="settingsBtn" aria-label="Settings">&#9881;</button>
   </div>
 
-  <!-- HOME: project list -->
-  <section class="screen active" id="homeScreen">
+  <!-- FRONT DOOR: choose a discipline -->
+  <section class="screen active" id="doorScreen">
+    <div class="door-hero">
+      <img id="doorLogo" alt="" style="display:none">
+      <h2 id="doorTitle">Professional Fees</h2>
+      <p id="doorSub">Guideline fee proposals for the built environment professions. Choose your discipline.</p>
+    </div>
+    <div class="door-grid" id="doorGrid"></div>
+    <p class="hint" style="text-align:center;margin-top:18px">Fees follow each council's gazetted guideline. Guidelines only, not prescribed; every proposal is open to negotiation.</p>
+  </section>
+
+  <!-- HOME: project list for the chosen discipline -->
+  <section class="screen" id="homeScreen">
     <button class="btn" id="newBtn">+ New fee proposal</button>
     <div style="height:12px"></div>
     <ul class="plist" id="plist"></ul>
@@ -154,6 +180,16 @@
     </div>
 
     <div class="card">
+      <h2>How is this job charged?</h2>
+      <div class="seg" id="timeMode">
+        <button data-t="none" class="on">On value of works</button>
+        <button data-t="add">Value + hours</button>
+        <button data-t="only">Hours only</button>
+      </div>
+      <p class="hint" id="timeModeHint"></p>
+    </div>
+
+    <div class="card" id="valueCard">
       <h2>Value of works</h2>
       <div class="seg" id="valueMode">
         <button data-mode="single" class="on">Single project</button>
@@ -191,7 +227,7 @@
       <p class="hint" id="cowNote"></p>
     </div>
 
-    <div class="card">
+    <div class="card" id="complexityCard">
       <h2>Complexity</h2>
       <div class="seg" id="complexity">
         <button data-c="low">Low</button>
@@ -201,7 +237,7 @@
       <p class="hint" id="complexityHint"></p>
     </div>
 
-    <div class="card">
+    <div class="card" id="stagesCard">
       <h2>Work stages included</h2>
       <ul class="stages" id="stageList"></ul>
       <p class="hint" id="stageSum"></p>
@@ -213,6 +249,14 @@
       <input type="number" id="rPct" inputmode="decimal" placeholder="35" min="0" max="100">
       <p class="hint" id="repeatHint"></p>
       <p class="hint" id="repeatNote"></p>
+    </div>
+
+    <div class="card" id="timeCard" style="display:none">
+      <h2>Hourly work</h2>
+      <ul class="disb" id="timeList"></ul>
+      <button class="btn secondary" id="addTimeBtn" type="button">+ Add hours</button>
+      <p class="hint" id="timeNote"></p>
+      <p class="hint" id="timeResult" style="font-weight:600;color:var(--ink)"></p>
     </div>
 
     <div class="card">
@@ -290,7 +334,19 @@
 <script src="fees-2026.js"></script>
 <script>
 (function () {
-  const F = window.SACAP_FEES;
+  // The six built-environment councils. A discipline is live once a fee module with that id
+  // has registered itself in window.FEE_MODULES (see fees-2026.js).
+  const DISCIPLINES = [
+    { id: "sacap",   name: "Architecture",                        council: "SACAP",   ic: "A" },
+    { id: "ecsa",    name: "Engineering",                         council: "ECSA",    ic: "E" },
+    { id: "sacqsp",  name: "Quantity surveying",                  council: "SACQSP",  ic: "Q" },
+    { id: "sacpcmp", name: "Project and construction management", council: "SACPCMP", ic: "P" },
+    { id: "saclap",  name: "Landscape architecture",              council: "SACLAP",  ic: "L" },
+    { id: "sacpvp",  name: "Property valuation",                  council: "SACPVP",  ic: "V" }
+  ];
+  const MODULES = window.FEE_MODULES || {};
+  let disc = null;   // the chosen discipline id
+  let F = null;      // its fee module (tables, stages, wording)
   const $ = (id) => document.getElementById(id);
   const LS_PROJECTS = "feeapp.projects.v1";
   const LS_SETTINGS = "feeapp.settings.v1";
@@ -360,47 +416,68 @@
     }).filter((d) => d.cost > 0);
     return { items, total: items.reduce((s, d) => s + d.line, 0) };
   }
+  // Time-based lines (gazette Table 4, clause 18): role, rate per hour, hours.
+  function timeInfo(p) {
+    const t = p.time || { mode: "none", lines: [] };
+    if (t.mode === "none") return { mode: "none", items: [], total: 0 };
+    const items = (t.lines || []).map((l) => {
+      const rate = Number(l.rate) || 0, hours = Number(l.hours) || 0;
+      return { role: l.role || "Hourly work", desc: l.desc || "", rate, hours, amount: rate * hours };
+    }).filter((l) => l.amount > 0);
+    return { mode: t.mode, items, total: items.reduce((s, l) => s + l.amount, 0) };
+  }
   function calc(p) {
-    const comps = components(p);
-    const value = comps.reduce((s, c) => s + c.value, 0);
+    const time = timeInfo(p);
     const disb = disbInfo(p);
-    if (value < 1) return { value: 0, full: 0, stagesPct: 0, stageFee: 0, discount: 0, fee: 0, vat: 0, total: 0, bracket: null, stageLines: [], repeat: null, disb, comps };
-    const br = bracketFor(p.complexity, value);
-    const primary = br[2];
-    const secondary = (value - br[0]) * br[3] / 100;
-    const full = primary + secondary;
-    const repeat = repeatInfo(p, comps);
-    let stagesPct = 0, stageFee = 0;
-    const stageLines = [];
-    p.stages.forEach((st) => {
-      if (!st.on) return;
-      const pc = Number(st.percent) || 0;
-      const factor = repeat && isStage14(st.id) ? repeat.factor : 1;
-      const amt = full * pc / 100 * factor;
-      stagesPct += pc; stageFee += amt;
-      stageLines.push({ id: st.id, name: st.name, pc, amt, adjusted: factor !== 1 });
-    });
-    const discount = stageFee * (Number(p.discount) || 0) / 100;
-    const fee = stageFee - discount;
-    const vat = settings.vat ? (fee + disb.total) * F.vatRate : 0;
-    return { value, bracket: br, primary, secondary, full, stagesPct, stageFee, discount, fee, vat, total: fee + disb.total + vat, stageLines, repeat, disb, comps };
+    const timeOnly = time.mode === "only";
+    const comps = timeOnly ? [] : components(p);
+    const value = comps.reduce((s, c) => s + c.value, 0);
+    const base = { value: 0, full: 0, stagesPct: 0, stageFee: 0, discount: 0, fee: 0, vat: 0, total: 0, bracket: null, stageLines: [], repeat: null, disb, comps, time, timeOnly, primary: 0, secondary: 0 };
+    let r = base;
+    if (!timeOnly && value >= 1) {
+      const br = bracketFor(p.complexity, value);
+      const primary = br[2];
+      const secondary = (value - br[0]) * br[3] / 100;
+      const full = primary + secondary;
+      const repeat = repeatInfo(p, comps);
+      let stagesPct = 0, stageFee = 0;
+      const stageLines = [];
+      p.stages.forEach((st) => {
+        if (!st.on) return;
+        const pc = Number(st.percent) || 0;
+        const factor = repeat && isStage14(st.id) ? repeat.factor : 1;
+        const amt = full * pc / 100 * factor;
+        stagesPct += pc; stageFee += amt;
+        stageLines.push({ id: st.id, name: st.name, pc, amt, adjusted: factor !== 1 });
+      });
+      r = Object.assign({}, base, { value, bracket: br, primary, secondary, full, stagesPct, stageFee, stageLines, repeat });
+    }
+    // The discount applies to the professional fee (cost-based part plus hours), not to disbursements.
+    const before = r.stageFee + time.total;
+    r.discount = before * (Number(p.discount) || 0) / 100;
+    r.fee = before - r.discount;
+    r.vat = settings.vat ? (r.fee + disb.total) * F.vatRate : 0;
+    r.total = r.fee + disb.total + r.vat;
+    r.empty = !timeOnly && value < 1 && time.total === 0;
+    return r;
   }
 
   // ---------- navigation ----------
-  const screens = ["homeScreen", "editScreen", "proposalScreen", "settingsScreen"];
-  let stack = ["homeScreen"];
+  const screens = ["doorScreen", "homeScreen", "editScreen", "proposalScreen", "settingsScreen"];
+  let stack = ["doorScreen"];
   function show(id, title, push = true) {
     screens.forEach((s) => $(s).classList.toggle("active", s === id));
     $("barTitle").textContent = title;
-    $("backBtn").style.display = id === "homeScreen" ? "none" : "";
-    $("settingsBtn").style.display = id === "homeScreen" ? "" : "none";
+    $("backBtn").style.display = id === "doorScreen" ? "none" : "";
+    $("settingsBtn").style.display = id === "doorScreen" || id === "homeScreen" ? "" : "none";
     if (push) stack.push(id);
     window.scrollTo(0, 0);
   }
   function back() {
     stack.pop();
-    const prev = stack[stack.length - 1] || "homeScreen";
-    if (prev === "homeScreen") { renderHome(); show("homeScreen", "Fee Proposals", false); }
+    const prev = stack[stack.length - 1] || "doorScreen";
+    if (prev === "doorScreen") { renderDoor(); show("doorScreen", "Professional Fees", false); }
+    else if (prev === "homeScreen") { renderHome(); show("homeScreen", homeTitle(), false); }
     else if (prev === "editScreen") show("editScreen", current ? (current.name || "New proposal") : "New proposal", false);
     else if (prev === "proposalScreen") { renderDoc(); show("proposalScreen", "Proposal", false); }
     else show(prev, "Settings", false);
@@ -408,12 +485,35 @@
   $("backBtn").onclick = back;
   $("settingsBtn").onclick = () => { fillSettings(); show("settingsScreen", "Settings"); };
 
+  // ---------- front door ----------
+  const homeTitle = () => (DISCIPLINES.find((d) => d.id === disc) || {}).name + " fees";
+  function renderDoor() {
+    const g = $("doorGrid"); g.innerHTML = "";
+    const logo = $("doorLogo"); logo.style.display = settings.logo ? "" : "none"; if (settings.logo) logo.src = settings.logo;
+    $("doorTitle").textContent = settings.firm || "Professional Fees";
+    DISCIPLINES.forEach((d) => {
+      const m = MODULES[d.id];
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "tile" + (m ? "" : " soon");
+      b.innerHTML = `<div class="ic">${d.ic}</div><b></b><small></small>${m ? "" : `<span class="soonTag">Coming soon</span>`}`;
+      b.querySelector("b").textContent = d.name;
+      b.querySelector("small").textContent = m ? `${d.council} · ${m.notice}` : d.council;
+      b.onclick = () => {
+        if (!m) { toast(d.name + ": coming soon"); return; }
+        disc = d.id; F = m;
+        renderHome(); show("homeScreen", homeTitle());
+      };
+      g.appendChild(b);
+    });
+  }
+
   // ---------- home ----------
   function renderHome() {
     const ul = $("plist"); ul.innerHTML = "";
     projects.forEach(migrate);
-    $("emptyMsg").style.display = projects.length ? "none" : "";
-    projects.slice().sort((a, b) => b.updated - a.updated).forEach((p) => {
+    const mine = projects.filter((p) => p.discipline === disc);
+    $("emptyMsg").style.display = mine.length ? "none" : "";
+    mine.sort((a, b) => b.updated - a.updated).forEach((p) => {
       const c = calc(p);
       const li = document.createElement("li");
       li.innerHTML = `<div class="t"><b></b><span></span></div><div class="fee"></div>`;
@@ -423,14 +523,14 @@
       li.onclick = () => { current = p; fillEdit(); show("editScreen", p.name || "Proposal"); };
       ul.appendChild(li);
     });
-    $("feeSource").textContent = "Fees from SACAP " + F.notice + ". Guideline only, not prescribed.";
+    $("feeSource").textContent = `Fees from ${F.council}, ${F.notice}. Guideline only, not prescribed.`;
   }
   $("newBtn").onclick = () => {
     current = {
-      id: Date.now().toString(36), name: "", client: "", email: "", mode: "single", basis: "area", area: "", rate: settings.rate || "", value: "",
+      id: Date.now().toString(36), discipline: disc, name: "", client: "", email: "", mode: "single", basis: "area", area: "", rate: settings.rate || "", value: "",
       complexity: "medium", discount: "", notes: "",
       repeat: { pct: F.repeatedBuildings.stages14Percent },
-      disb: [], blds: [],
+      disb: [], blds: [], time: { mode: "none", lines: [] },
       stages: F.stages.map((s) => ({ id: s.id, name: s.name, percent: s.percent, on: true })),
       created: Date.now(), updated: Date.now()
     };
@@ -466,14 +566,64 @@
     });
     $("cowNote").textContent = F.costOfWorksNote;
     setBasis(p.basis || "area", false);
+    $("timeNote").textContent = `Rates are the ${F.council.split(" (")[0]} guideline hourly rates, ${F.notice}, excluding VAT. Change a rate if yours differs.`;
+    renderTime();
+    setTimeMode(p.time.mode, false);
     recalc();
   }
+  const TIME_HINT = {
+    none: "The fee follows the value of works and the stages you include.",
+    add: "The value-based fee, plus hours for additional services (gazette clause 18: additional services are time-based unless agreed otherwise).",
+    only: "The whole job is charged on time. Value of works, complexity and stages do not apply."
+  };
+  function setTimeMode(m, re = true) {
+    current.time.mode = m;
+    $("timeMode").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.t === m));
+    $("timeModeHint").textContent = TIME_HINT[m] || "";
+    const costBased = m !== "only";
+    ["valueCard", "complexityCard", "stagesCard"].forEach((id) => { $(id).style.display = costBased ? "" : "none"; });
+    $("repeatCard").style.display = costBased && current.mode === "scheme" ? "" : "none";
+    $("timeCard").style.display = m === "none" ? "none" : "";
+    if (m !== "none" && current.time.lines.length === 0) { current.time.lines.push(newTimeLine()); renderTime(); }
+    if (re) recalc();
+  }
+  $("timeMode").onclick = (e) => { const b = e.target.closest("button"); if (b) setTimeMode(b.dataset.t); };
+  const newTimeLine = () => { const r = F.hourlyRates[0]; return { role: r.role, rate: r.rate, hours: "", desc: "" }; };
+  function renderTime() {
+    const ul = $("timeList"); ul.innerHTML = "";
+    const opts = F.hourlyRates.map((r) => `<option value="${esc(r.role)}">${esc(r.role)} · R${r.rate}/h</option>`).join("") + `<option value="Other">Other (own rate)</option>`;
+    current.time.lines.forEach((l, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<select class="role">${opts}</select>
+        <div class="row"><input type="number" class="rate" inputmode="decimal" placeholder="Rate R/hour"><input type="number" class="hours" inputmode="decimal" placeholder="Hours"></div>
+        <div class="row"><input type="text" class="desc" placeholder="What the hours are for (optional)"></div>
+        <div class="row" style="align-items:center;justify-content:space-between"><small class="val"></small><button class="rm" type="button">Remove</button></div>`;
+      const q = (s) => li.querySelector(s);
+      const role = q(".role"), rate = q(".rate"), hours = q(".hours"), desc = q(".desc"), val = q(".val");
+      role.value = l.role; if (role.value !== l.role) role.value = "Other";
+      rate.value = l.rate; hours.value = l.hours; desc.value = l.desc || "";
+      const paint = () => { const a = (Number(l.rate) || 0) * (Number(l.hours) || 0); val.textContent = a ? `${l.hours} h × ${fmt0(Number(l.rate))} = ${fmt0(a)}` : ""; };
+      role.onchange = () => { l.role = role.value; const g = F.hourlyRates.find((r) => r.role === role.value); if (g) { l.rate = g.rate; rate.value = g.rate; } paint(); recalc(); };
+      rate.oninput = () => { l.rate = rate.value; paint(); recalc(); };
+      hours.oninput = () => { l.hours = hours.value; paint(); recalc(); };
+      desc.oninput = () => { l.desc = desc.value; recalc(); };
+      q(".rm").onclick = () => { current.time.lines.splice(i, 1); renderTime(); recalc(); };
+      ul.appendChild(li); paint();
+    });
+  }
+  $("addTimeBtn").onclick = () => {
+    current.time.lines.push(newTimeLine()); renderTime();
+    const last = $("timeList").lastElementChild; if (last) last.querySelector(".hours").focus();
+  };
   // Proposals saved by earlier versions used other field names; bring them up to date.
   function migrate(p) {
+    if (!p.discipline) p.discipline = "sacap";   // everything before the front door was architecture
+    if (!p.time) p.time = { mode: "none", lines: [] };
     if (!p.disb) p.disb = [];
     if (!p.blds) p.blds = [];
     if (!p.repeat) p.repeat = {};
-    if (p.repeat.pct === undefined) p.repeat.pct = F.repeatedBuildings.stages14Percent;
+    const mod = MODULES[p.discipline] || MODULES.sacap;
+    if (p.repeat.pct === undefined) p.repeat.pct = mod && mod.repeatedBuildings ? mod.repeatedBuildings.stages14Percent : 35;
     if (p.mode === "area") { p.mode = "single"; p.basis = "area"; }
     if (p.mode === "direct") { p.mode = "single"; p.basis = "value"; }
     if (p.mode === "multi") p.mode = "scheme";
@@ -542,7 +692,7 @@
     $("modeHint").textContent = MODE_HINT[m] || "";
     $("singleInputs").style.display = m === "single" ? "" : "none";
     $("schemeInputs").style.display = m === "scheme" ? "" : "none";
-    $("repeatCard").style.display = m === "scheme" ? "" : "none";
+    $("repeatCard").style.display = m === "scheme" && current.time.mode !== "only" ? "" : "none";
     if (m === "scheme" && current.blds.length === 0) { current.blds.push(newBld(false), newBld(true)); renderBlds(); }
     if (re) recalc();
   }
@@ -609,10 +759,12 @@
     readEdit();
     const c = calc(current);
     $("liveFee").textContent = fmt0(c.fee);
-    if (!c.value) { $("liveSub").textContent = "Enter the value of works to begin"; }
+    if (c.timeOnly) { $("liveSub").textContent = c.time.total ? `${c.time.items.reduce((s, l) => s + l.hours, 0)} hours, time-based` + (c.discount ? " · less " + pct(Number(current.discount)) : "") : "Enter hours to begin"; }
+    else if (!c.value) { $("liveSub").textContent = "Enter the value of works to begin"; }
     else {
-      $("liveSub").textContent = fmt0(c.value) + " value of works · " + F.complexities[current.complexity].label.toLowerCase() + " · " + pct(c.stagesPct) + " of stages" + (c.discount ? " · less " + pct(Number(current.discount)) : "");
+      $("liveSub").textContent = fmt0(c.value) + " value of works · " + F.complexities[current.complexity].label.toLowerCase() + " · " + pct(c.stagesPct) + " of stages" + (c.time.total ? " · + " + fmt0(c.time.total) + " hours" : "") + (c.discount ? " · less " + pct(Number(current.discount)) : "");
     }
+    $("timeResult").textContent = c.time.total ? "Hourly work: " + fmt0(c.time.total) : "";
     $("areaResult").textContent = current.mode === "single" && current.basis === "area" && c.value ? "Value of works: " + fmt0(c.value) : "";
     $("multiResult").textContent = current.mode === "scheme" && c.value ? "Total value of works: " + fmt0(c.value) : "";
     if (current.mode === "scheme") {
@@ -630,7 +782,7 @@
   function persist() {
     if (!current) return;
     // Don't save an untouched proposal (tap New, then Back) — it would clutter the list.
-    const touched = current.name || current.client || Number(current.area) || Number(current.value) || current.disb.length;
+    const touched = current.name || current.client || Number(current.area) || Number(current.value) || current.disb.length || current.blds.length || current.time.mode !== "none";
     if (!touched) return;
     current.updated = Date.now();
     const i = projects.findIndex((p) => p.id === current.id);
@@ -648,7 +800,7 @@
   $("delYes").onclick = () => {
     clearTimeout(saveTimer); // stop a pending autosave from putting it back
     projects = projects.filter((p) => p.id !== current.id); save(LS_PROJECTS, projects);
-    current = null; stack = ["homeScreen"]; renderHome(); show("homeScreen", "Fee Proposals", false); toast("Deleted");
+    current = null; stack = ["doorScreen", "homeScreen"]; renderHome(); show("homeScreen", homeTitle(), false); toast("Deleted");
   };
   $("editBtn").onclick = back;
 
@@ -675,6 +827,20 @@
     }
     const repeatLine = c.repeat ? `<p>Repeated buildings: ${c.repeat.groups.map((g) => `${esc(g.name)}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${c.repeat.bespoke.length ? ` Bespoke at full fee: ${c.repeat.bespoke.map((b) => esc(b.name)).join(", ")}.` : ""}</p>` : "";
     const repeatNote = c.repeat ? `<p class="meta">* Stages 1 to 4 adjusted for repeated buildings (clause 23): bespoke buildings and prototypes at full fee, each repeat at ${pct(c.repeat.pct)} of the guideline fee for those stages, weighted by value of works. Stages 5 and 6 at full fee.</p>` : "";
+    const timeRows = c.time.items.map((l) => `<tr><td>${esc(l.role)}${l.desc ? " · " + esc(l.desc) : ""}<br><span class="meta">${l.hours} hours × ${fmt0(l.rate)} per hour</span></td><td>${fmt(l.amount)}</td></tr>`).join("");
+    const timeBlock = c.time.items.length ? `<h4>${c.timeOnly ? "Time-based fee" : "Additional services, time-based"}</h4><table>${timeRows}<tr class="tot"><td>Hourly work</td><td>${fmt(c.time.total)}</td></tr></table>${c.timeOnly ? "" : `<p class="meta">Clause 18: unless otherwise agreed, the fee for additional services is time-based at the guideline hourly rates.</p>`}` : "";
+    const costBlock = c.timeOnly || !c.bracket ? "" : `
+      <h4>Guideline fee for the full standard service</h4>
+      <table>
+        <tr><td>Primary fee (bracket ${fmt0(c.bracket[0])} to ${c.bracket[1] === null ? "upwards" : fmt0(c.bracket[1])})</td><td colspan="2">${fmt(c.primary)}</td></tr>
+        <tr><td>Plus ${pct(c.bracket[3])} on ${fmt0(c.value - c.bracket[0])}</td><td colspan="2">${fmt(c.secondary)}</td></tr>
+        <tr class="tot"><td>Full-service guideline fee</td><td colspan="2">${fmt(c.full)}</td></tr>
+      </table>
+      <h4>Work stages included</h4>
+      <table>${stageRows}
+        <tr class="tot"><td>Fee for stages included (${pct(c.stagesPct)})</td><td></td><td>${fmt(c.stageFee)}</td></tr>
+      </table>
+      ${repeatNote}`;
     const disbRows = c.disb.items.map((d) => `<tr><td>${esc(d.cat)}${d.desc ? " · " + esc(d.desc) : ""}${d.attendPct ? ` <span class="meta">(cost ${fmt(d.cost)} + ${pct(d.attendPct)} attendance)</span>` : ""}</td><td>${fmt(d.line)}</td></tr>`).join("");
     const disbBlock = c.disb.items.length ? `<h4>Disbursements (estimate)</h4><table>${disbRows}<tr class="tot"><td>Disbursements</td><td>${fmt(c.disb.total)}</td></tr></table>` : "";
     const subtotalRow = c.disb.items.length ? `<tr><td>Disbursements (estimate)</td><td>${fmt(c.disb.total)}</td></tr><tr class="${settings.vat ? "" : "tot"}"><td>Fee and disbursements${settings.vat ? " (excl. VAT)" : ""}</td><td>${fmt(c.fee + c.disb.total)}</td></tr>` : "";
@@ -684,35 +850,26 @@
       <h3>Fee proposal: ${esc(p.name || "Untitled project")}</h3>
       <p class="meta">Prepared for ${esc(p.client || "the client")} · ${d(today)} · valid until ${d(validTo)}</p>
 
+      ${c.timeOnly ? `<h4>Basis</h4><p>Time-based fee for the agreed scope of work, at the guideline hourly rates.</p>` : `
       <h4>Basis</h4>
       ${p.mode === "scheme" ? `<p>Development scheme, estimated value of works:</p>${worksLine}` : `<p>Estimated value of works: ${worksLine}</p>`}
       <p>Complexity: ${esc(F.complexities[p.complexity].label)}</p>
       ${repeatLine}
-      <p class="meta">${esc(F.costOfWorksNote)}</p>
-
-      <h4>Guideline fee for the full standard service</h4>
-      <table>
-        <tr><td>Primary fee (bracket ${fmt0(c.bracket[0])} to ${c.bracket[1] === null ? "upwards" : fmt0(c.bracket[1])})</td><td colspan="2">${fmt(c.primary)}</td></tr>
-        <tr><td>Plus ${pct(c.bracket[3])} on ${fmt0(c.value - c.bracket[0])}</td><td colspan="2">${fmt(c.secondary)}</td></tr>
-        <tr class="tot"><td>Full-service guideline fee</td><td colspan="2">${fmt(c.full)}</td></tr>
-      </table>
-
-      <h4>Work stages included</h4>
-      <table>${stageRows}
-        <tr class="tot"><td>Fee for stages included (${pct(c.stagesPct)})</td><td></td><td>${fmt(c.stageFee)}</td></tr>
-      </table>
-      ${repeatNote}
+      <p class="meta">${esc(F.costOfWorksNote)}</p>`}
+      ${costBlock}
+      ${timeBlock}
       ${disbBlock}
 
       <h4>Proposed fee</h4>
       <table>
+        ${!c.timeOnly && c.time.total ? `<tr><td>Fee on value of works</td><td>${fmt(c.stageFee)}</td></tr><tr><td>Hourly work</td><td>${fmt(c.time.total)}</td></tr>` : ""}
         ${c.discount ? `<tr><td>Less discount (${pct(Number(p.discount))})</td><td>− ${fmt(c.discount)}</td></tr>` : ""}
         <tr class="${settings.vat || c.disb.items.length ? "" : "tot"}"><td>Professional fee${settings.vat ? " (excl. VAT)" : ""}</td><td>${fmt(c.fee)}</td></tr>
         ${subtotalRow}
         ${settings.vat ? `<tr class="sub"><td>VAT at ${pct(F.vatRate * 100)}</td><td>${fmt(c.vat)}</td></tr><tr class="tot"><td>Total including VAT</td><td>${fmt(c.total)}</td></tr>` : ""}
       </table>
       ${p.notes ? `<h4>Notes</h4><p>${esc(p.notes).replace(/\n/g, "<br>")}</p>` : ""}
-      <p class="note">Fees are calculated with reference to the SACAP guideline for professional fees, ${esc(F.notice)} (${esc(F.gazette)}). ${esc(F.guidelineWording)} The fee above is a proposal and is open to negotiation. Where a project cost-based fee applies, the final fee is calculated on the final cost of the works. ${c.disb.items.length ? "Disbursements are estimates and are reimbursed at cost as incurred." : "Disbursements are excluded and will be reimbursed at cost as incurred."}</p>
+      <p class="note">Fees are calculated with reference to the guideline for professional fees of the ${esc(F.council)}, ${esc(F.notice)} (${esc(F.gazette)}). ${esc(F.guidelineWording)} The fee above is a proposal and is open to negotiation. Where a project cost-based fee applies, the final fee is calculated on the final cost of the works. ${c.disb.items.length ? "Disbursements are estimates and are reimbursed at cost as incurred." : "Disbursements are excluded and will be reimbursed at cost as incurred."}</p>
     `;
   }
   function proposalText() {
@@ -721,16 +878,17 @@
       `${settings.firm || "Fee proposal"}: ${p.name || "Untitled project"}`,
       `Prepared for ${p.client || "the client"}`,
       ``,
-      `Estimated value of works: ${fmt0(c.value)} (${F.complexities[p.complexity].label.toLowerCase()})`,
-      `Full-service guideline fee: ${fmt(c.full)}`,
-      `Stages included: ${p.stages.filter((s) => s.on).map((s) => s.id).join(", ")} (${pct(c.stagesPct)})`,
+      c.timeOnly ? `Time-based fee at guideline hourly rates` : `Estimated value of works: ${fmt0(c.value)} (${F.complexities[p.complexity].label.toLowerCase()})`,
+      c.timeOnly ? null : `Full-service guideline fee: ${fmt(c.full)}`,
+      c.timeOnly ? null : `Stages included: ${p.stages.filter((s) => s.on).map((s) => s.id).join(", ")} (${pct(c.stagesPct)})`,
+      c.time.total ? `Hourly work: ${c.time.items.map((l) => `${l.role} ${l.hours} h`).join(", ")} = ${fmt(c.time.total)}` : null,
       c.repeat ? `Repeated buildings: ${c.repeat.groups.map((g) => `${g.name} ${g.qty} units (${g.protos} prototype(s))`).join(", ")}; stages 1 to 4 on each repeat at ${pct(c.repeat.pct)}` : null,
       c.discount ? `Discount: ${pct(Number(p.discount))}` : null,
       `Professional fee${settings.vat ? " excl. VAT" : ""}: ${fmt(c.fee)}`,
       c.disb.items.length ? `Disbursements (estimate): ${fmt(c.disb.total)}` : null,
       settings.vat ? `Total incl. VAT: ${fmt(c.total)}` : null,
       ``,
-      `Based on the SACAP guideline for professional fees (${F.notice}). Guideline only, open to negotiation.`,
+      `Based on the ${F.council} guideline for professional fees (${F.notice}). Guideline only, open to negotiation.`,
       settings.contact || null
     ].filter((l) => l !== null);
     return lines.join("\n");
@@ -774,7 +932,9 @@
   function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1800); }
 
   applyColour();
-  renderHome();
+  projects.forEach(migrate);
+  renderDoor();
+  show("doorScreen", "Professional Fees", false);
   if (!settings.firm) { setTimeout(() => toast("Tap the gear to add your firm's name and logo"), 600); }
 })();
 </script>
