@@ -10,6 +10,11 @@
 //   246 281.11 + (3 000 000 - 2 000 001) x 10.40% = R350 281.00
 
 window.SACAP_FEES = {
+  // Which discipline tile on the front door this module serves.
+  id: "sacap",
+  discipline: "Architecture",
+  council: "South African Council for the Architectural Profession (SACAP)",
+  country: "South Africa",
   notice: "Board Notice 885 of 2026",
   gazette: "Government Gazette No. 54218, 27 February 2026",
   effectiveYear: 2026,
@@ -143,3 +148,8 @@ window.SACAP_FEES = {
     { role: "Support staff",                              rate: 408 }
   ]
 };
+
+// Register this module for the front door. Other disciplines register under their own id
+// (ecsa, sacqsp, sacpcmp, saclap, sacpvp) from their own files.
+window.FEE_MODULES = window.FEE_MODULES || {};
+window.FEE_MODULES[window.SACAP_FEES.id] = window.SACAP_FEES;

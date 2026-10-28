@@ -59,6 +59,16 @@
   .btn:active { opacity: 0.85; }
   .btn.danger { background: #b91c1c; }
 
+  /* Invoice summary and rows */
+  table.sum { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.sum td { padding: 6px 0; border-bottom: 1px solid var(--line); }
+  table.sum td:last-child { text-align: right; white-space: nowrap; font-weight: 600; }
+  table.sum tr.tot td { border-bottom: none; border-top: 2px solid var(--ink); font-weight: 700; }
+  .disb li.paid { border-color: #bbf7d0; background: #f0fdf4; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #fef3c7; color: var(--warn); }
+  .pill.ok { background: #dcfce7; color: var(--ok); }
+  .plist .t span.due { color: var(--warn); font-weight: 600; }
+
   /* Disbursement rows */
   .disb { list-style: none; }
   .disb li { border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
@@ -83,7 +93,7 @@
 
   /* Front door */
   .door-hero { text-align: center; padding: 10px 8px 18px; }
-  .door-hero img { width: 72px; height: 72px; object-fit: contain; border-radius: 12px; margin-bottom: 8px; }
+  .door-hero img { height: 64px; width: auto; max-width: 220px; object-fit: contain; margin-bottom: 8px; }
   .door-hero h2 { font-size: 20px; font-weight: 700; }
   .door-hero p { font-size: 13px; color: var(--muted); margin-top: 4px; }
   .door-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -99,8 +109,8 @@
   /* Proposal document */
   .doc { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 20px 18px; margin-bottom: 12px; }
   .doc .head { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid var(--accent); padding-bottom: 14px; margin-bottom: 14px; }
-  .doc .logo { width: 64px; height: 64px; object-fit: contain; border-radius: 8px; flex: none; }
-  .doc .logo.ph { background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; }
+  .doc .logo { height: 56px; width: auto; max-width: 150px; object-fit: contain; flex: none; }
+  .doc .logo.ph { width: 56px; border-radius: 8px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; }
   .doc .firm b { display: block; font-size: 18px; }
   .doc .firm span { display: block; font-size: 12px; color: var(--muted); }
   .doc h3 { font-size: 16px; margin: 14px 0 6px; }
@@ -118,7 +128,7 @@
   .toast.show { opacity: 1; }
 
   .logo-pick { display: flex; align-items: center; gap: 12px; }
-  .logo-pick img { width: 56px; height: 56px; object-fit: contain; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  .logo-pick img { height: 56px; width: auto; max-width: 140px; object-fit: contain; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
   .logo-pick input[type=file] { font-size: 13px; }
   .colour { display: flex; align-items: center; gap: 10px; }
   .colour input[type=color] { width: 44px; height: 36px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: #fff; }
@@ -275,6 +285,7 @@
     </div>
 
     <button class="btn" id="viewBtn">View proposal</button>
+    <button class="btn secondary" id="invoicesBtn">Invoices and payments</button>
     <button class="btn ghost" id="deleteBtn">Delete this proposal</button>
     <div class="card" id="deleteConfirm" style="display:none">
       <p style="font-size:14px">Delete <b id="delName"></b>? This cannot be undone.</p>
@@ -289,10 +300,33 @@
   <section class="screen" id="proposalScreen">
     <div class="doc" id="doc"></div>
     <div class="noprint">
-      <button class="btn" id="shareBtn">Share / send to client</button>
-      <button class="btn secondary" id="pdfBtn">Save as PDF / print</button>
+      <button class="btn" id="shareBtn">Send PDF to client</button>
+      <button class="btn secondary" id="pdfBtn">Download PDF</button>
+      <button class="btn ghost" id="shareTextBtn">Share as text instead</button>
       <button class="btn ghost" id="editBtn">Edit inputs</button>
     </div>
+  </section>
+
+  <!-- INVOICES: what has been invoiced and paid on this project -->
+  <section class="screen" id="invoiceScreen">
+    <div class="total">
+      <div class="lbl" id="invLbl">Outstanding</div>
+      <div class="amt" id="invOutstanding">R 0</div>
+      <div class="sub" id="invSub"></div>
+    </div>
+    <div class="card">
+      <h2>Summary</h2>
+      <table class="sum" id="invSummary"></table>
+      <p class="hint" id="invVatNote"></p>
+    </div>
+    <div class="card">
+      <h2>Invoices</h2>
+      <ul class="disb" id="invList"></ul>
+      <button class="btn secondary" id="addInvBtn" type="button">+ Add an invoice</button>
+      <button class="btn ghost" id="planInvBtn" type="button">Plan invoices from the work stages</button>
+      <p class="hint">Gazette clause 27: stages 1 to 4.2 are invoiced against deliverables; stage 5 in equal monthly instalments over the construction period. Edit the planned lines to suit.</p>
+    </div>
+    <button class="btn ghost" id="invBackBtn">Back to the proposal</button>
   </section>
 
   <!-- SETTINGS: firm branding -->
@@ -310,7 +344,8 @@
         <img id="sLogoPreview" alt="" style="display:none">
         <input type="file" id="sLogo" accept="image/*">
       </div>
-      <p class="hint">The logo is stored on this phone only.</p>
+      <button class="btn ghost" id="sLogoRemove" type="button" style="display:none;margin-top:4px;text-align:left;padding:6px 0;color:#b91c1c">Remove logo</button>
+      <p class="hint">A wide logo works best (landscape, on a white or transparent background). It is stored on this phone only.</p>
       <label>Accent colour</label>
       <div class="colour"><input type="color" id="sColour" value="#1f2a44"><span class="hint">Used for the header and totals</span></div>
     </div>
@@ -331,7 +366,9 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="fees-2026.js"></script>
+<script src="fees-2026.js?v=20261028c"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 (function () {
   // The six built-environment councils. A discipline is live once a fee module with that id
@@ -345,6 +382,8 @@
     { id: "sacpvp",  name: "Property valuation",                  council: "SACPVP",  ic: "V" }
   ];
   const MODULES = window.FEE_MODULES || {};
+  // An older fees-2026.js (before 28 Oct) defines SACAP_FEES but does not register it; accept it anyway.
+  if (!MODULES.sacap && window.SACAP_FEES) MODULES.sacap = Object.assign({ id: "sacap", discipline: "Architecture", council: "South African Council for the Architectural Profession (SACAP)", country: "South Africa" }, window.SACAP_FEES);
   let disc = null;   // the chosen discipline id
   let F = null;      // its fee module (tables, stages, wording)
   const $ = (id) => document.getElementById(id);
@@ -463,7 +502,7 @@
   }
 
   // ---------- navigation ----------
-  const screens = ["doorScreen", "homeScreen", "editScreen", "proposalScreen", "settingsScreen"];
+  const screens = ["doorScreen", "homeScreen", "editScreen", "proposalScreen", "invoiceScreen", "settingsScreen"];
   let stack = ["doorScreen"];
   function show(id, title, push = true) {
     screens.forEach((s) => $(s).classList.toggle("active", s === id));
@@ -480,6 +519,7 @@
     else if (prev === "homeScreen") { renderHome(); show("homeScreen", homeTitle(), false); }
     else if (prev === "editScreen") show("editScreen", current ? (current.name || "New proposal") : "New proposal", false);
     else if (prev === "proposalScreen") { renderDoc(); show("proposalScreen", "Proposal", false); }
+    else if (prev === "invoiceScreen") { renderInvoices(); show("invoiceScreen", "Invoices", false); }
     else show(prev, "Settings", false);
   }
   $("backBtn").onclick = back;
@@ -518,7 +558,8 @@
       const li = document.createElement("li");
       li.innerHTML = `<div class="t"><b></b><span></span></div><div class="fee"></div>`;
       li.querySelector("b").textContent = p.name || "Untitled";
-      li.querySelector("span").textContent = (p.client ? p.client + " · " : "") + new Date(p.updated).toLocaleDateString("en-ZA");
+      const inv = invoiceInfo(p, c);
+      li.querySelector("span").innerHTML = esc((p.client ? p.client + " · " : "") + new Date(p.updated).toLocaleDateString("en-ZA")) + (inv.outstanding > 0.005 ? ` · <span class="due">${fmt0(inv.outstanding)} outstanding</span>` : "");
       li.querySelector(".fee").textContent = fmt0(c.fee);
       li.onclick = () => { current = p; fillEdit(); show("editScreen", p.name || "Proposal"); };
       ul.appendChild(li);
@@ -530,7 +571,7 @@
       id: Date.now().toString(36), discipline: disc, name: "", client: "", email: "", mode: "single", basis: "area", area: "", rate: settings.rate || "", value: "",
       complexity: "medium", discount: "", notes: "",
       repeat: { pct: F.repeatedBuildings.stages14Percent },
-      disb: [], blds: [], time: { mode: "none", lines: [] },
+      disb: [], blds: [], time: { mode: "none", lines: [] }, invoices: [],
       stages: F.stages.map((s) => ({ id: s.id, name: s.name, percent: s.percent, on: true })),
       created: Date.now(), updated: Date.now()
     };
@@ -619,6 +660,7 @@
   function migrate(p) {
     if (!p.discipline) p.discipline = "sacap";   // everything before the front door was architecture
     if (!p.time) p.time = { mode: "none", lines: [] };
+    if (!p.invoices) p.invoices = [];
     if (!p.disb) p.disb = [];
     if (!p.blds) p.blds = [];
     if (!p.repeat) p.repeat = {};
@@ -782,7 +824,7 @@
   function persist() {
     if (!current) return;
     // Don't save an untouched proposal (tap New, then Back) — it would clutter the list.
-    const touched = current.name || current.client || Number(current.area) || Number(current.value) || current.disb.length || current.blds.length || current.time.mode !== "none";
+    const touched = current.name || current.client || Number(current.area) || Number(current.value) || current.disb.length || current.blds.length || current.time.mode !== "none" || current.invoices.length;
     if (!touched) return;
     current.updated = Date.now();
     const i = projects.findIndex((p) => p.id === current.id);
@@ -803,6 +845,83 @@
     current = null; stack = ["doorScreen", "homeScreen"]; renderHome(); show("homeScreen", homeTitle(), false); toast("Deleted");
   };
   $("editBtn").onclick = back;
+
+  // ---------- invoices and payments ----------
+  // Amounts are what appears on the invoice: including VAT when the firm is registered.
+  const todayIso = () => new Date().toISOString().slice(0, 10);
+  function invoiceInfo(p, c) {
+    const feeIncl = c.total;   // fee + disbursements + VAT (VAT is 0 when not registered)
+    const invoiced = (p.invoices || []).reduce((s, i) => s + (Number(i.amount) || 0), 0);
+    const paid = (p.invoices || []).reduce((s, i) => s + (i.paid ? (Number(i.paidAmount) || 0) : 0), 0);
+    return { feeIncl, invoiced, paid, outstanding: invoiced - paid, toInvoice: feeIncl - invoiced };
+  }
+  function renderInvoices() {
+    const p = current, c = calc(p), inv = invoiceInfo(p, c);
+    $("invOutstanding").textContent = fmt0(inv.outstanding);
+    $("invSub").textContent = inv.invoiced ? `${fmt0(inv.paid)} received of ${fmt0(inv.invoiced)} invoiced` : "Nothing invoiced yet";
+    $("invSummary").innerHTML = `
+      <tr><td>Proposed fee${settings.vat ? " incl. VAT" : ""}${c.disb.items.length ? " and disbursements" : ""}</td><td>${fmt(inv.feeIncl)}</td></tr>
+      <tr><td>Invoiced to date</td><td>${fmt(inv.invoiced)}</td></tr>
+      <tr><td>Paid to date</td><td>${fmt(inv.paid)}</td></tr>
+      <tr class="tot"><td>Outstanding (invoiced, not yet paid)</td><td>${fmt(inv.outstanding)}</td></tr>
+      <tr><td>Still to invoice</td><td>${fmt(inv.toInvoice)}</td></tr>`;
+    $("invVatNote").textContent = settings.vat ? "Invoice and payment amounts include VAT, as on the invoice." : "Amounts exclude VAT (firm not registered).";
+    const ul = $("invList"); ul.innerHTML = "";
+    p.invoices.forEach((i, idx) => {
+      const li = document.createElement("li"); li.className = i.paid ? "paid" : "";
+      li.innerHTML = `<div class="row"><input type="text" class="num" placeholder="Invoice no." style="flex:1"><input type="date" class="date" style="flex:1.4"></div>
+        <div class="row"><input type="text" class="desc" placeholder="Description, e.g. Stage 3 · Design development"></div>
+        <div class="row" style="align-items:center"><input type="number" class="amt" inputmode="decimal" placeholder="Amount R${settings.vat ? " incl. VAT" : ""}"><label style="margin:0;display:flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap"><input type="checkbox" class="pd" style="width:18px;height:18px;accent-color:var(--ok)"> Paid</label></div>
+        <div class="row pdRow" style="align-items:center"><small>Received</small><input type="date" class="pdate" style="flex:1.4"><input type="number" class="pamt" inputmode="decimal" placeholder="Amount received" style="flex:1"></div>
+        <div class="row" style="align-items:center;justify-content:space-between"><span class="pill"></span><button class="rm" type="button">Remove</button></div>`;
+      const q = (s) => li.querySelector(s);
+      const num = q(".num"), date = q(".date"), desc = q(".desc"), amt = q(".amt"), pd = q(".pd"), pdate = q(".pdate"), pamt = q(".pamt"), pill = q(".pill"), pdRow = q(".pdRow");
+      num.value = i.number || ""; date.value = i.date || ""; desc.value = i.desc || ""; amt.value = i.amount; pd.checked = !!i.paid; pdate.value = i.paidDate || ""; pamt.value = i.paidAmount || "";
+      const paint = () => {
+        pdRow.style.display = i.paid ? "" : "none"; li.className = i.paid ? "paid" : "";
+        const a = Number(i.amount) || 0, r = i.paid ? Number(i.paidAmount) || 0 : 0;
+        pill.className = "pill" + (i.paid && r >= a - 0.005 ? " ok" : "");
+        pill.textContent = !a ? "" : i.paid ? (r >= a - 0.005 ? "Paid" : `Part paid · ${fmt0(a - r)} short`) : "Unpaid";
+      };
+      const upd = () => { i.number = num.value; i.date = date.value; i.desc = desc.value; i.amount = amt.value; i.paidDate = pdate.value; i.paidAmount = pamt.value; paint(); persistNow(); renderSummaryOnly(); };
+      [num, date, desc, amt, pdate, pamt].forEach((el) => { el.oninput = upd; el.onchange = upd; });
+      pd.onchange = () => { i.paid = pd.checked; if (i.paid) { if (!i.paidDate) { i.paidDate = todayIso(); pdate.value = i.paidDate; } if (!i.paidAmount) { i.paidAmount = i.amount; pamt.value = i.amount; } } upd(); };
+      q(".rm").onclick = () => { p.invoices.splice(idx, 1); persistNow(); renderInvoices(); };
+      ul.appendChild(li); paint();
+    });
+  }
+  function renderSummaryOnly() {
+    const c = calc(current), inv = invoiceInfo(current, c);
+    $("invOutstanding").textContent = fmt0(inv.outstanding);
+    $("invSub").textContent = inv.invoiced ? `${fmt0(inv.paid)} received of ${fmt0(inv.invoiced)} invoiced` : "Nothing invoiced yet";
+    const cells = $("invSummary").querySelectorAll("td:last-child");
+    [inv.feeIncl, inv.invoiced, inv.paid, inv.outstanding, inv.toInvoice].forEach((v, k) => { if (cells[k]) cells[k].textContent = fmt(v); });
+  }
+  function persistNow() { clearTimeout(saveTimer); persist(); }
+  $("invoicesBtn").onclick = () => { persist(); renderInvoices(); show("invoiceScreen", "Invoices"); };
+  $("invBackBtn").onclick = back;
+  $("addInvBtn").onclick = () => {
+    current.invoices.push({ id: Date.now().toString(36), number: "", date: todayIso(), desc: "", amount: "", paid: false, paidDate: "", paidAmount: "" });
+    persistNow(); renderInvoices();
+    const last = $("invList").lastElementChild; if (last) last.querySelector(".num").focus();
+  };
+  $("planInvBtn").onclick = () => {
+    const c = calc(current);
+    const vatF = settings.vat ? 1 + F.vatRate : 1;
+    const discF = 1 - (Number(current.discount) || 0) / 100;
+    const lines = [];
+    c.stageLines.forEach((s) => lines.push({ desc: `Stage ${s.id} · ${s.name}`, amount: s.amt * discF * vatF }));
+    if (c.time.total) lines.push({ desc: c.timeOnly ? "Time-based fee" : "Additional services (hourly)", amount: c.time.total * discF * vatF });
+    if (c.disb.total) lines.push({ desc: "Disbursements", amount: c.disb.total * vatF });
+    if (!lines.length) { toast("Nothing to plan yet: enter the fee first"); return; }
+    // Round each line to cents, then let the last line absorb the rounding so the lines add up to the total exactly.
+    const r2 = (v) => Math.round(v * 100) / 100;
+    lines.forEach((l) => { l.amount = r2(l.amount); });
+    const target = r2(c.total), sum = r2(lines.reduce((s, l) => s + l.amount, 0));
+    lines[lines.length - 1].amount = r2(lines[lines.length - 1].amount + (target - sum));
+    lines.forEach((l) => current.invoices.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), number: "", date: "", desc: l.desc, amount: l.amount.toString(), paid: false, paidDate: "", paidAmount: "" }));
+    persistNow(); renderInvoices(); toast(`${lines.length} planned invoices added`);
+  };
 
   // ---------- proposal document ----------
   function esc(s) { return String(s || "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
@@ -893,17 +1012,158 @@
     ].filter((l) => l !== null);
     return lines.join("\n");
   }
-  $("shareBtn").onclick = async () => {
+  $("shareTextBtn").onclick = async () => {
     const text = proposalText();
     const title = "Fee proposal: " + (current.name || "project");
     if (navigator.share) {
       try { await navigator.share({ title, text }); return; } catch (e) { if (e && e.name === "AbortError") return; }
     }
-    // Fallback: email draft
     const to = current.email || "";
     location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text)}`;
   };
-  $("pdfBtn").onclick = () => window.print();
+
+  // ---------- PDF (built in the page with jsPDF; nothing leaves the phone) ----------
+  const pdfName = () => ("Fee proposal - " + (current.name || "project")).replace(/[\\/:*?"<>|]+/g, "-") + ".pdf";
+  function loadImage(src) { return new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; }); }
+  function hexRgb(h) { const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h || ""); return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [31, 42, 68]; }
+  const pdfMoney = (s) => s.replace(/−/g, "-");   // jsPDF's built-in fonts have no Unicode minus
+  async function buildPdf() {
+    if (!window.jspdf) { toast("PDF library not loaded. Check the connection and try again."); return null; }
+    const p = current, c = calc(p);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const W = 210, M = 18, CW = W - 2 * M;
+    const accent = hexRgb(settings.colour), grey = [107, 114, 128], ink = [26, 26, 26];
+    const today = new Date(), validTo = new Date(today.getTime() + (Number(settings.valid) || 30) * 86400000);
+    const d = (x) => x.toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
+    let y = M;
+
+    // Header: logo (kept in proportion, max 16 mm high) and firm details
+    let x = M;
+    if (settings.logo) {
+      const im = await loadImage(settings.logo);
+      if (im && im.width && im.height) {
+        const h = 16, w = Math.min(50, h * im.width / im.height);
+        try { doc.addImage(settings.logo, "PNG", M, y, w, h); x = M + w + 5; } catch (e) { try { doc.addImage(settings.logo, "JPEG", M, y, w, h); x = M + w + 5; } catch (e2) {} }
+      }
+    }
+    doc.setFont("helvetica", "bold").setFontSize(14).setTextColor(...ink).text(settings.firm || "Your firm name", x, y + 6);
+    doc.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(...grey);
+    if (settings.tag) doc.text(settings.tag, x, y + 11);
+    if (settings.contact) doc.text(settings.contact, x, y + 15);
+    y += 20;
+    doc.setDrawColor(...accent).setLineWidth(0.8).line(M, y, W - M, y);
+    y += 8;
+
+    doc.setFont("helvetica", "bold").setFontSize(13).setTextColor(...ink).text("Fee proposal: " + (p.name || "Untitled project"), M, y);
+    y += 5.5;
+    doc.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(...grey);
+    doc.text(`Prepared for ${p.client || "the client"}  ·  ${d(today)}  ·  valid until ${d(validTo)}`, M, y);
+    y += 7;
+
+    const h4 = (t) => { if (y > 265) { doc.addPage(); y = M; } doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...grey).text(t.toUpperCase(), M, y); y += 4; };
+    const para = (t, size = 9.5, col = ink) => { doc.setFont("helvetica", "normal").setFontSize(size).setTextColor(...col); const lines = doc.splitTextToSize(t, CW); if (y + lines.length * size * 0.42 > 280) { doc.addPage(); y = M; } doc.text(lines, M, y); y += lines.length * size * 0.42 + 2; };
+    const table = (rows, opts = {}) => {
+      doc.autoTable(Object.assign({
+        startY: y, margin: { left: M, right: M }, theme: "plain",
+        styles: { font: "helvetica", fontSize: 9, textColor: ink, cellPadding: { top: 1.6, bottom: 1.6, left: 0, right: 0 }, lineColor: [229, 231, 235], lineWidth: { bottom: 0.2 } },
+        columnStyles: { 0: { cellWidth: "auto" }, 1: { halign: "right", cellWidth: 38 } },
+        body: rows.map((r) => r.map(pdfMoney)),
+        didParseCell: (data) => {
+          const r = rows[data.row.index];
+          if (r._tot) { data.cell.styles.fontStyle = "bold"; data.cell.styles.lineWidth = { top: 0.4, bottom: 0 }; data.cell.styles.lineColor = ink; }
+          if (r._sub) { data.cell.styles.textColor = grey; }
+          if (r._head) { data.cell.styles.textColor = grey; data.cell.styles.fontSize = 8; data.cell.styles.lineWidth = 0; }
+        }
+      }, opts));
+      y = doc.lastAutoTable.finalY + 5;
+    };
+    const tot = (a, b) => Object.assign([a, b], { _tot: true });
+    const sub = (a, b) => Object.assign([a, b], { _sub: true });
+    const head = (a) => Object.assign([a, ""], { _head: true });
+
+    // Basis
+    h4("Basis");
+    if (c.timeOnly) {
+      para("Time-based fee for the agreed scope of work, at the guideline hourly rates.");
+    } else {
+      if (p.mode === "scheme") {
+        const rows = [];
+        const prim = c.comps.filter((b) => !b.isUnit), units = c.comps.filter((b) => b.isUnit);
+        const line = (b) => [`${b.name}  (${b.byArea ? `${b.area} m² × ${fmt0(b.rate)} per m²` : "estimated value"}${b.isUnit ? ` per unit × ${b.qty}` : ""})`, fmt0(b.value)];
+        if (prim.length) { rows.push(head("Primary buildings")); prim.forEach((b) => rows.push(line(b))); }
+        if (units.length) { rows.push(head("Repeated units")); units.forEach((b) => rows.push(line(b))); }
+        rows.push(tot("Total value of works", fmt0(c.value)));
+        para("Development scheme, estimated value of works:");
+        table(rows);
+      } else {
+        para("Estimated value of works: " + (p.basis === "area" ? `${p.area} m² × ${fmt0(Number(p.rate) || 0)} per m² = ${fmt0(c.value)}` : fmt0(c.value)));
+      }
+      para("Complexity: " + F.complexities[p.complexity].label);
+      if (c.repeat) para(`Repeated buildings: ${c.repeat.groups.map((g) => `${g.name}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${c.repeat.bespoke.length ? ` Bespoke at full fee: ${c.repeat.bespoke.map((b) => b.name).join(", ")}.` : ""}`);
+      para(F.costOfWorksNote, 8, grey);
+    }
+
+    // Cost-based fee
+    if (!c.timeOnly && c.bracket) {
+      h4("Guideline fee for the full standard service");
+      table([
+        [`Primary fee (bracket ${fmt0(c.bracket[0])} to ${c.bracket[1] === null ? "upwards" : fmt0(c.bracket[1])})`, fmt(c.primary)],
+        [`Plus ${pct(c.bracket[3])} on ${fmt0(c.value - c.bracket[0])}`, fmt(c.secondary)],
+        tot("Full-service guideline fee", fmt(c.full))
+      ]);
+      h4("Work stages included");
+      table(c.stageLines.map((s) => [`Stage ${s.id} · ${s.name}${s.adjusted ? " *" : ""}   (${pct(s.pc)})`, fmt(s.amt)]).concat([tot(`Fee for stages included (${pct(c.stagesPct)})`, fmt(c.stageFee))]));
+      if (c.repeat) para(`* Stages 1 to 4 adjusted for repeated buildings (clause 23): bespoke buildings and prototypes at full fee, each repeat at ${pct(c.repeat.pct)} of the guideline fee for those stages, weighted by value of works. Stages 5 and 6 at full fee.`, 8, grey);
+    }
+
+    // Hours
+    if (c.time.items.length) {
+      h4(c.timeOnly ? "Time-based fee" : "Additional services, time-based");
+      table(c.time.items.map((l) => [`${l.role}${l.desc ? " · " + l.desc : ""}   (${l.hours} hours × ${fmt0(l.rate)} per hour)`, fmt(l.amount)]).concat([tot("Hourly work", fmt(c.time.total))]));
+      if (!c.timeOnly) para("Clause 18: unless otherwise agreed, the fee for additional services is time-based at the guideline hourly rates.", 8, grey);
+    }
+
+    // Disbursements
+    if (c.disb.items.length) {
+      h4("Disbursements (estimate)");
+      table(c.disb.items.map((dd) => [`${dd.cat}${dd.desc ? " · " + dd.desc : ""}${dd.attendPct ? `   (cost ${fmt(dd.cost)} + ${pct(dd.attendPct)} attendance)` : ""}`, fmt(dd.line)]).concat([tot("Disbursements", fmt(c.disb.total))]));
+    }
+
+    // Proposed fee
+    h4("Proposed fee");
+    const rows = [];
+    if (!c.timeOnly && c.time.total) { rows.push(["Fee on value of works", fmt(c.stageFee)], ["Hourly work", fmt(c.time.total)]); }
+    if (c.discount) rows.push([`Less discount (${pct(Number(p.discount))})`, "- " + fmt(c.discount)]);
+    rows.push((settings.vat || c.disb.items.length ? Array : tot)(`Professional fee${settings.vat ? " (excl. VAT)" : ""}`, fmt(c.fee)));
+    if (c.disb.items.length) { rows.push(["Disbursements (estimate)", fmt(c.disb.total)]); rows.push((settings.vat ? Array : tot)(`Fee and disbursements${settings.vat ? " (excl. VAT)" : ""}`, fmt(c.fee + c.disb.total))); }
+    if (settings.vat) { rows.push(sub(`VAT at ${pct(F.vatRate * 100)}`, fmt(c.vat))); rows.push(tot("Total including VAT", fmt(c.total))); }
+    table(rows.map((r) => Array.isArray(r) ? r : r));
+    if (p.notes) { h4("Notes"); para(p.notes); }
+
+    para(`Fees are calculated with reference to the guideline for professional fees of the ${F.council}, ${F.notice} (${F.gazette}). ${F.guidelineWording} The fee above is a proposal and is open to negotiation. Where a project cost-based fee applies, the final fee is calculated on the final cost of the works. ${c.disb.items.length ? "Disbursements are estimates and are reimbursed at cost as incurred." : "Disbursements are excluded and will be reimbursed at cost as incurred."}`, 7.5, grey);
+
+    // Footer on every page
+    const n = doc.getNumberOfPages();
+    for (let i = 1; i <= n; i++) {
+      doc.setPage(i); doc.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(...grey);
+      doc.text(`${settings.firm || "Fee proposal"} · ${p.name || ""}`, M, 290);
+      doc.text(`Page ${i} of ${n}`, W - M, 290, { align: "right" });
+    }
+    return doc;
+  }
+  $("shareBtn").onclick = async () => {
+    toast("Preparing PDF…");
+    const doc = await buildPdf(); if (!doc) return;
+    const file = new File([doc.output("blob")], pdfName(), { type: "application/pdf" });
+    const title = "Fee proposal: " + (current.name || "project");
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title, text: title }); return; } catch (e) { if (e && e.name === "AbortError") return; }
+    }
+    doc.save(pdfName());
+    toast("PDF downloaded. Attach it to your email or message.");
+  };
+  $("pdfBtn").onclick = async () => { const doc = await buildPdf(); if (doc) doc.save(pdfName()); };
 
   // ---------- settings ----------
   function fillSettings() {
@@ -911,7 +1171,9 @@
     $("sColour").value = settings.colour || "#1f2a44"; $("sRate").value = settings.rate || ""; $("sValid").value = settings.valid || 30;
     $("sVat").querySelectorAll("button").forEach((b) => b.classList.toggle("on", Number(b.dataset.v) === Number(settings.vat)));
     const img = $("sLogoPreview"); img.style.display = settings.logo ? "" : "none"; if (settings.logo) img.src = settings.logo;
+    $("sLogoRemove").style.display = settings.logo ? "" : "none";
   }
+  $("sLogoRemove").onclick = () => { settings.logo = ""; $("sLogo").value = ""; fillSettings(); toast("Logo removed; tap Save"); };
   $("sVat").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; settings.vat = Number(b.dataset.v); $("sVat").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); };
   $("sLogo").onchange = () => {
     const f = $("sLogo").files[0]; if (!f) return;
