@@ -101,12 +101,34 @@ window.SACAP_FEES = {
     { id: "6",   name: "Close-out",                       percent: 3 }
   ],
 
+  // Generic module interface used by index.html (same shape as the ECSA and SACQSP modules).
+  feeLabel: "Full-service guideline fee",
+  selectors: [
+    { id: "complexity", type: "seg", label: "Complexity", default: "medium",
+      options: [{ id: "low", label: "Low" }, { id: "medium", label: "Medium" }, { id: "high", label: "High" }] }
+  ],
+  resolve(sel) {
+    const c = this.complexities[sel.complexity] || this.complexities.medium;
+    return {
+      brackets: c.brackets,   // [from, to, primary, %]; the secondary fee is charged on (value − from)
+      factor: 1,
+      stageKey: "sacap",
+      stages: this.stages.map((s) => ({ id: s.id, name: s.name, percent: s.percent, on: true })),
+      summary: ["Complexity: " + c.label],
+      hint: c.description,
+      factorLabel: ""
+    };
+  },
+  hourlyNote: "SACAP guideline hourly rates (Table 4, Method 2), excluding VAT. Change a rate if yours differs.",
+  disbursementNote: "Reimbursed at cost. The gazette allows a minimum of 10% on top for attendance where the fee is project cost-based. Set it to 0 to charge cost only.",
+
   // Clause 23, gazette page 21: repeated buildings under one contract, one client, one site or
   // closely related sites. Full fee on the prototype(s). On each repeat, stages 1 to 4 are
   // apportioned at 35% of the guideline fee for those stages; stages 5 and 6 stay at full fee.
   // Does NOT apply to similar floors in a multi-storey building. "May be adjusted by agreement".
   repeatedBuildings: {
     stages14Percent: 35,
+    stageIds: ["1", "2", "3", "4.1", "4.2"],
     note: "Clause 23: full fee on the prototype design; on each repeated unit, stages 1 to 4 at 35% of the guideline fee for those stages, stages 5 and 6 at full fee. Not for similar floors in one multi-storey building."
   },
 
