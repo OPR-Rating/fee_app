@@ -73,7 +73,10 @@
   .disb { list-style: none; }
   .disb li { border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
   .disb .row { margin-top: 6px; }
-  .disb .rm { background: none; border: none; color: #b91c1c; font-size: 13px; padding: 6px 0 0; cursor: pointer; }
+  .disb .rm { background: none; border: none; color: #b91c1c; font-size: 13px; padding: 6px 0 0 10px; cursor: pointer; }
+  .disb .lnk { background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 600; padding: 6px 0 0 10px; cursor: pointer; }
+  .doc .sig { display: flex; gap: 12px; margin-top: 22px; }
+  .doc .sig div { flex: 1; border-top: 1px solid var(--ink); padding-top: 4px; font-size: 11px; color: var(--muted); }
   .disb small { color: var(--muted); font-size: 12px; }
 
   /* Live total */
@@ -324,6 +327,7 @@
       <ul class="disb" id="invList"></ul>
       <button class="btn secondary" id="addInvBtn" type="button">+ Add an invoice</button>
       <button class="btn ghost" id="planInvBtn" type="button">Plan invoices from the work stages</button>
+      <p class="hint">To invoice: add a line (the number is given automatically), describe it, enter the amount, then tap <b>Send PDF</b>. When the money comes in, tick <b>Paid</b>. Planned lines are drafts: they get a number when you first send them.</p>
       <p class="hint">Gazette clause 27: stages 1 to 4.2 are invoiced against deliverables; stage 5 in equal monthly instalments over the construction period. Edit the planned lines to suit.</p>
     </div>
     <button class="btn ghost" id="invBackBtn">Back to the proposal</button>
@@ -361,6 +365,19 @@
       <label>Proposal validity (days)</label>
       <input type="number" id="sValid" inputmode="numeric" placeholder="30">
     </div>
+    <div class="card">
+      <h2>Invoicing</h2>
+      <label>VAT registration number (shown on tax invoices)</label>
+      <input type="text" id="sVatNo" placeholder="4123456789">
+      <div class="row">
+        <div><label>Invoice number prefix</label><input type="text" id="sInvPrefix" placeholder="INV-"></div>
+        <div><label>Next invoice number</label><input type="number" id="sInvNext" inputmode="numeric" placeholder="1" min="1"></div>
+      </div>
+      <label>Payment terms</label>
+      <input type="text" id="sTerms" placeholder="Payable on presentation">
+      <label>Banking details (printed on every invoice)</label>
+      <textarea id="sBank" rows="3" placeholder="Bank · Account name · Account number · Branch code · Reference: invoice number"></textarea>
+    </div>
     <button class="btn" id="saveSettingsBtn">Save</button>
   </section>
 </div>
@@ -394,7 +411,7 @@
   function load(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
   function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { toast("Could not save on this phone"); } }
 
-  let settings = Object.assign({ firm: "", tag: "", contact: "", logo: "", colour: "#1f2a44", rate: 15000, vat: 1, valid: 30 }, load(LS_SETTINGS, {}));
+  let settings = Object.assign({ firm: "", tag: "", contact: "", logo: "", colour: "#1f2a44", rate: 15000, vat: 1, valid: 30, vatNo: "", invPrefix: "INV-", invNext: 1, terms: "Payable on presentation", bank: "" }, load(LS_SETTINGS, {}));
   let projects = load(LS_PROJECTS, []);
   let current = null; // the project being edited
 
@@ -873,9 +890,17 @@
         <div class="row"><input type="text" class="desc" placeholder="Description, e.g. Stage 3 · Design development"></div>
         <div class="row" style="align-items:center"><input type="number" class="amt" inputmode="decimal" placeholder="Amount R${settings.vat ? " incl. VAT" : ""}"><label style="margin:0;display:flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap"><input type="checkbox" class="pd" style="width:18px;height:18px;accent-color:var(--ok)"> Paid</label></div>
         <div class="row pdRow" style="align-items:center"><small>Received</small><input type="date" class="pdate" style="flex:1.4"><input type="number" class="pamt" inputmode="decimal" placeholder="Amount received" style="flex:1"></div>
-        <div class="row" style="align-items:center;justify-content:space-between"><span class="pill"></span><button class="rm" type="button">Remove</button></div>`;
+        <div class="row" style="align-items:center;justify-content:space-between"><span class="pill"></span><span><button class="lnk send" type="button">Send PDF</button><button class="lnk dl" type="button">Download</button><button class="rm" type="button">Remove</button></span></div>`;
       const q = (s) => li.querySelector(s);
       const num = q(".num"), date = q(".date"), desc = q(".desc"), amt = q(".amt"), pd = q(".pd"), pdate = q(".pdate"), pamt = q(".pamt"), pill = q(".pill"), pdRow = q(".pdRow");
+      const ready = () => {
+        if (!(Number(i.amount) > 0)) { toast("Enter the invoice amount first"); return false; }
+        if (!i.number) { i.number = nextInvoiceNumber(); num.value = i.number; }
+        if (!i.date) { i.date = todayIso(); date.value = i.date; }
+        persistNow(); return true;
+      };
+      q(".send").onclick = async () => { if (!ready()) return; toast("Preparing invoice…"); const doc = await buildInvoicePdf(i); if (doc) await sharePdf(doc, invoiceFileName(i), `${settings.vat ? "Tax invoice" : "Invoice"} ${i.number}`); };
+      q(".dl").onclick = async () => { if (!ready()) return; const doc = await buildInvoicePdf(i); if (doc) doc.save(invoiceFileName(i)); };
       num.value = i.number || ""; date.value = i.date || ""; desc.value = i.desc || ""; amt.value = i.amount; pd.checked = !!i.paid; pdate.value = i.paidDate || ""; pamt.value = i.paidAmount || "";
       const paint = () => {
         pdRow.style.display = i.paid ? "" : "none"; li.className = i.paid ? "paid" : "";
@@ -901,9 +926,9 @@
   $("invoicesBtn").onclick = () => { persist(); renderInvoices(); show("invoiceScreen", "Invoices"); };
   $("invBackBtn").onclick = back;
   $("addInvBtn").onclick = () => {
-    current.invoices.push({ id: Date.now().toString(36), number: "", date: todayIso(), desc: "", amount: "", paid: false, paidDate: "", paidAmount: "" });
+    current.invoices.push({ id: Date.now().toString(36), number: nextInvoiceNumber(), date: todayIso(), desc: "", amount: "", paid: false, paidDate: "", paidAmount: "" });
     persistNow(); renderInvoices();
-    const last = $("invList").lastElementChild; if (last) last.querySelector(".num").focus();
+    const last = $("invList").lastElementChild; if (last) last.querySelector(".desc").focus();
   };
   $("planInvBtn").onclick = () => {
     const c = calc(current);
@@ -988,6 +1013,9 @@
         ${settings.vat ? `<tr class="sub"><td>VAT at ${pct(F.vatRate * 100)}</td><td>${fmt(c.vat)}</td></tr><tr class="tot"><td>Total including VAT</td><td>${fmt(c.total)}</td></tr>` : ""}
       </table>
       ${p.notes ? `<h4>Notes</h4><p>${esc(p.notes).replace(/\n/g, "<br>")}</p>` : ""}
+      <h4>Acceptance</h4>
+      <p>I/we accept this fee proposal and appoint ${esc(settings.firm || "the firm")} on the terms set out above.</p>
+      <div class="sig"><div>Name</div><div>Signature</div><div>Date</div></div>
       <p class="note">Fees are calculated with reference to the guideline for professional fees of the ${esc(F.council)}, ${esc(F.notice)} (${esc(F.gazette)}). ${esc(F.guidelineWording)} The fee above is a proposal and is open to negotiation. Where a project cost-based fee applies, the final fee is calculated on the final cost of the works. ${c.disb.items.length ? "Disbursements are estimates and are reimbursed at cost as incurred." : "Disbursements are excluded and will be reimbursed at cost as incurred."}</p>
     `;
   }
@@ -1027,19 +1055,12 @@
   function loadImage(src) { return new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; }); }
   function hexRgb(h) { const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h || ""); return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [31, 42, 68]; }
   const pdfMoney = (s) => s.replace(/−/g, "-");   // jsPDF's built-in fonts have no Unicode minus
-  async function buildPdf() {
-    if (!window.jspdf) { toast("PDF library not loaded. Check the connection and try again."); return null; }
-    const p = current, c = calc(p);
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
-    const W = 210, M = 18, CW = W - 2 * M;
-    const accent = hexRgb(settings.colour), grey = [107, 114, 128], ink = [26, 26, 26];
-    const today = new Date(), validTo = new Date(today.getTime() + (Number(settings.valid) || 30) * 86400000);
-    const d = (x) => x.toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
-    let y = M;
-
-    // Header: logo (kept in proportion, max 16 mm high) and firm details
-    let x = M;
+  const PDF = { W: 210, M: 18, grey: [107, 114, 128], ink: [26, 26, 26] };
+  const fmtDate = (iso) => { if (!iso) return ""; const t = new Date(iso + "T00:00:00"); return isNaN(t) ? iso : t.toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" }); };
+  // Letterhead shared by the proposal and the invoice: logo in proportion, firm details, accent rule.
+  async function pdfHeader(doc) {
+    const { W, M, grey, ink } = PDF, accent = hexRgb(settings.colour);
+    let y = M, x = M;
     if (settings.logo) {
       const im = await loadImage(settings.logo);
       if (im && im.width && im.height) {
@@ -1053,7 +1074,33 @@
     if (settings.contact) doc.text(settings.contact, x, y + 15);
     y += 20;
     doc.setDrawColor(...accent).setLineWidth(0.8).line(M, y, W - M, y);
-    y += 8;
+    return y + 8;
+  }
+  function pdfFooter(doc, label) {
+    const { W, M, grey } = PDF, n = doc.getNumberOfPages();
+    for (let i = 1; i <= n; i++) {
+      doc.setPage(i); doc.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(...grey);
+      doc.text(label, M, 290); doc.text(`Page ${i} of ${n}`, W - M, 290, { align: "right" });
+    }
+  }
+  async function sharePdf(doc, name, title) {
+    const file = new File([doc.output("blob")], name, { type: "application/pdf" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title, text: title }); return; } catch (e) { if (e && e.name === "AbortError") return; }
+    }
+    doc.save(name);
+    toast("PDF downloaded. Attach it to your email or message.");
+  }
+  async function buildPdf() {
+    if (!window.jspdf) { toast("PDF library not loaded. Check the connection and try again."); return null; }
+    const p = current, c = calc(p);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const W = PDF.W, M = PDF.M, CW = W - 2 * M;
+    const grey = PDF.grey, ink = PDF.ink;
+    const today = new Date(), validTo = new Date(today.getTime() + (Number(settings.valid) || 30) * 86400000);
+    const d = (x) => x.toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
+    let y = await pdfHeader(doc);
 
     doc.setFont("helvetica", "bold").setFontSize(13).setTextColor(...ink).text("Fee proposal: " + (p.name || "Untitled project"), M, y);
     y += 5.5;
@@ -1143,32 +1190,94 @@
 
     para(`Fees are calculated with reference to the guideline for professional fees of the ${F.council}, ${F.notice} (${F.gazette}). ${F.guidelineWording} The fee above is a proposal and is open to negotiation. Where a project cost-based fee applies, the final fee is calculated on the final cost of the works. ${c.disb.items.length ? "Disbursements are estimates and are reimbursed at cost as incurred." : "Disbursements are excluded and will be reimbursed at cost as incurred."}`, 7.5, grey);
 
-    // Footer on every page
-    const n = doc.getNumberOfPages();
-    for (let i = 1; i <= n; i++) {
-      doc.setPage(i); doc.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(...grey);
-      doc.text(`${settings.firm || "Fee proposal"} · ${p.name || ""}`, M, 290);
-      doc.text(`Page ${i} of ${n}`, W - M, 290, { align: "right" });
-    }
+    // Acceptance block
+    if (y > 235) { doc.addPage(); y = M; }
+    y += 2;
+    h4("Acceptance");
+    para(`I/we accept this fee proposal and appoint ${settings.firm || "the firm"} on the terms set out above.`, 9.5);
+    y += 8;
+    const colW = (CW - 12) / 3;
+    ["Name", "Signature", "Date"].forEach((lbl, i) => {
+      const x0 = M + i * (colW + 6);
+      doc.setDrawColor(...ink).setLineWidth(0.3).line(x0, y, x0 + colW, y);
+      doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...grey).text(lbl, x0, y + 4);
+    });
+
+    pdfFooter(doc, `${settings.firm || "Fee proposal"} · ${p.name || ""}`);
     return doc;
   }
   $("shareBtn").onclick = async () => {
     toast("Preparing PDF…");
     const doc = await buildPdf(); if (!doc) return;
-    const file = new File([doc.output("blob")], pdfName(), { type: "application/pdf" });
-    const title = "Fee proposal: " + (current.name || "project");
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title, text: title }); return; } catch (e) { if (e && e.name === "AbortError") return; }
-    }
-    doc.save(pdfName());
-    toast("PDF downloaded. Attach it to your email or message.");
+    await sharePdf(doc, pdfName(), "Fee proposal: " + (current.name || "project"));
   };
   $("pdfBtn").onclick = async () => { const doc = await buildPdf(); if (doc) doc.save(pdfName()); };
+
+  // ---------- invoice PDF ----------
+  function nextInvoiceNumber() {
+    const n = Math.max(1, Math.floor(Number(settings.invNext) || 1));
+    settings.invNext = n + 1; save(LS_SETTINGS, settings);
+    return (settings.invPrefix || "") + String(n).padStart(4, "0");
+  }
+  const invoiceFileName = (inv) => (`${settings.vat ? "Tax invoice" : "Invoice"} ${inv.number || ""} - ${current.client || current.name || "client"}`).replace(/[\\/:*?"<>|]+/g, "-").trim() + ".pdf";
+  async function buildInvoicePdf(inv) {
+    if (!window.jspdf) { toast("PDF library not loaded. Check the connection and try again."); return null; }
+    const p = current;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const W = PDF.W, M = PDF.M, CW = W - 2 * M, grey = PDF.grey, ink = PDF.ink;
+    const isTax = !!settings.vat;
+    let y = await pdfHeader(doc);
+
+    doc.setFont("helvetica", "bold").setFontSize(16).setTextColor(...ink).text(isTax ? "TAX INVOICE" : "INVOICE", M, y + 1);
+    const right = (label, val, yy) => { doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...grey).text(label, W - M - 62, yy); doc.setFont("helvetica", "bold").setTextColor(...ink).text(String(val), W - M, yy, { align: "right" }); };
+    right("Invoice number", inv.number || "", y);
+    right("Date", fmtDate(inv.date) || fmtDate(todayIso()), y + 5);
+    if (isTax && settings.vatNo) right("VAT registration no.", settings.vatNo, y + 10);
+    y += 20;
+
+    doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...grey).text("INVOICE TO", M, y); y += 5;
+    doc.setFont("helvetica", "normal").setFontSize(10.5).setTextColor(...ink).text(p.client || "Client", M, y); y += 5;
+    if (p.email) { doc.setFontSize(9).setTextColor(...grey).text(p.email, M, y); y += 5; }
+    doc.setFontSize(9).setTextColor(...grey).text("Project: " + (p.name || ""), M, y); y += 9;
+
+    const total = Number(inv.amount) || 0;
+    const excl = isTax ? total / (1 + F.vatRate) : total, vat = total - excl;
+    const base = { margin: { left: M, right: M }, theme: "plain", styles: { font: "helvetica", fontSize: 9.5, textColor: ink, cellPadding: { top: 2, bottom: 2, left: 0, right: 0 }, lineColor: [229, 231, 235], lineWidth: { bottom: 0.2 } } };
+    doc.autoTable(Object.assign({}, base, {
+      startY: y, head: [["Description", isTax ? "Amount (excl. VAT)" : "Amount"]],
+      headStyles: { textColor: grey, fontSize: 8, fontStyle: "bold", fillColor: false, lineWidth: { bottom: 0.4 }, lineColor: ink, halign: "left" },
+      body: [[inv.desc || "Professional fees as per fee proposal", fmt(excl)]],
+      columnStyles: { 0: { cellWidth: "auto" }, 1: { halign: "right", cellWidth: 42 } },
+      didParseCell: (dd) => { if (dd.section === "head" && dd.column.index === 1) dd.cell.styles.halign = "right"; }
+    }));
+    y = doc.lastAutoTable.finalY + 2;
+    const totRows = isTax ? [["Subtotal (excl. VAT)", fmt(excl)], [`VAT at ${pct(F.vatRate * 100)}`, fmt(vat)], ["TOTAL DUE", fmt(total)]] : [["TOTAL DUE", fmt(total)]];
+    doc.autoTable(Object.assign({}, base, {
+      startY: y, margin: { left: M + CW * 0.45, right: M }, body: totRows,
+      columnStyles: { 0: { cellWidth: "auto" }, 1: { halign: "right", cellWidth: 42 } },
+      didParseCell: (dd) => { if (dd.row.index === totRows.length - 1) { dd.cell.styles.fontStyle = "bold"; dd.cell.styles.fontSize = 11.5; dd.cell.styles.lineWidth = { top: 0.5, bottom: 0 }; dd.cell.styles.lineColor = ink; } }
+    }));
+    y = doc.lastAutoTable.finalY + 10;
+
+    if (inv.paid) { doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(22, 101, 52).text(`PAID  ·  ${fmt(Number(inv.paidAmount) || 0)} received ${inv.paidDate ? "on " + fmtDate(inv.paidDate) : ""}`, M, y); y += 9; }
+    const block = (title, text) => {
+      doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...grey).text(title, M, y); y += 4.5;
+      const lines = doc.splitTextToSize(text, CW);
+      doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(...ink).text(lines, M, y); y += lines.length * 4.3 + 6;
+    };
+    if (settings.terms) block("PAYMENT TERMS", settings.terms);
+    if (settings.bank) block("BANKING DETAILS", settings.bank + (inv.number ? `\nPayment reference: ${inv.number}` : ""));
+    doc.setFont("helvetica", "normal").setFontSize(7.5).setTextColor(...grey).text(doc.splitTextToSize("Fees in terms of the fee proposal for this project. Unless other terms are stated above, accounts are due and payable on presentation.", CW), M, y);
+    pdfFooter(doc, `${settings.firm || ""} · ${isTax ? "Tax invoice" : "Invoice"} ${inv.number || ""}`);
+    return doc;
+  }
 
   // ---------- settings ----------
   function fillSettings() {
     $("sFirm").value = settings.firm; $("sTag").value = settings.tag; $("sContact").value = settings.contact;
     $("sColour").value = settings.colour || "#1f2a44"; $("sRate").value = settings.rate || ""; $("sValid").value = settings.valid || 30;
+    $("sVatNo").value = settings.vatNo || ""; $("sInvPrefix").value = settings.invPrefix || ""; $("sInvNext").value = settings.invNext || 1; $("sTerms").value = settings.terms || ""; $("sBank").value = settings.bank || "";
     $("sVat").querySelectorAll("button").forEach((b) => b.classList.toggle("on", Number(b.dataset.v) === Number(settings.vat)));
     const img = $("sLogoPreview"); img.style.display = settings.logo ? "" : "none"; if (settings.logo) img.src = settings.logo;
     $("sLogoRemove").style.display = settings.logo ? "" : "none";
@@ -1185,6 +1294,7 @@
   $("saveSettingsBtn").onclick = () => {
     settings.firm = $("sFirm").value.trim(); settings.tag = $("sTag").value.trim(); settings.contact = $("sContact").value.trim();
     settings.colour = $("sColour").value; settings.rate = Number($("sRate").value) || 0; settings.valid = Number($("sValid").value) || 30;
+    settings.vatNo = $("sVatNo").value.trim(); settings.invPrefix = $("sInvPrefix").value; settings.invNext = Math.max(1, Math.floor(Number($("sInvNext").value) || 1)); settings.terms = $("sTerms").value.trim(); settings.bank = $("sBank").value.trim();
     save(LS_SETTINGS, settings); applyColour(); toast("Saved"); back();
   };
   function applyColour() { document.documentElement.style.setProperty("--accent", settings.colour || "#1f2a44"); document.querySelector('meta[name=theme-color]').content = settings.colour || "#1f2a44"; }
