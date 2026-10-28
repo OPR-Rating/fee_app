@@ -42,6 +42,7 @@
   .seg button { flex: 1; padding: 10px 4px; border: none; background: #fff; font: inherit; font-size: 14px; cursor: pointer; color: var(--ink); }
   .seg button + button { border-left: 1px solid var(--line); }
   .seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .seg.small button { font-size: 13px; padding: 7px 4px; }
 
   .stages { list-style: none; }
   .stages li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
@@ -155,19 +156,37 @@
     <div class="card">
       <h2>Value of works</h2>
       <div class="seg" id="valueMode">
-        <button data-mode="area" class="on">Area × rate</button>
-        <button data-mode="direct">Enter value</button>
+        <button data-mode="single" class="on">Single project</button>
+        <button data-mode="scheme">Development scheme</button>
       </div>
-      <div id="areaInputs">
-        <div class="row">
-          <div><label>Area (m²)</label><input type="number" id="pArea" inputmode="decimal" placeholder="350"></div>
-          <div><label>Rate (R per m²)</label><input type="number" id="pRate" inputmode="decimal" placeholder="15000"></div>
+      <p class="hint" id="modeHint"></p>
+      <div id="singleInputs">
+        <div class="seg small" id="singleBasis">
+          <button data-b="area" class="on">Area × rate</button>
+          <button data-b="value">Value of works</button>
+        </div>
+        <div id="areaInputs">
+          <div class="row">
+            <div><label>Area (m²)</label><input type="number" id="pArea" inputmode="decimal" placeholder="350"></div>
+            <div><label>Rate (R per m²)</label><input type="number" id="pRate" inputmode="decimal" placeholder="15000"></div>
+          </div>
+        </div>
+        <div id="directInputs" style="display:none">
+          <label>Estimated value of works (R)</label>
+          <input type="number" id="pValue" inputmode="decimal" placeholder="5250000">
         </div>
         <p class="hint" id="areaResult"></p>
       </div>
-      <div id="directInputs" style="display:none">
-        <label>Estimated value of works (R)</label>
-        <input type="number" id="pValue" inputmode="decimal" placeholder="5250000">
+      <div id="schemeInputs" style="display:none">
+        <h2 style="margin-top:14px">Primary buildings</h2>
+        <p class="hint" style="margin-bottom:8px">Bespoke, once-off buildings: clubhouse, gym, gatehouse. Full fee.</p>
+        <ul class="disb" id="primList"></ul>
+        <button class="btn secondary" id="addPrimBtn" type="button">+ Add a primary building</button>
+        <h2 style="margin-top:18px">Repeated units</h2>
+        <p class="hint" style="margin-bottom:8px">One row per unit type: how many, the size of one unit, and the rate. One design per row gets the full fee, the rest the repeat rate.</p>
+        <ul class="disb" id="repList"></ul>
+        <button class="btn secondary" id="addRepBtn" type="button">+ Add a unit type</button>
+        <p class="hint" id="multiResult" style="margin-top:10px;font-weight:600;color:var(--ink)"></p>
       </div>
       <p class="hint" id="cowNote"></p>
     </div>
@@ -188,21 +207,11 @@
       <p class="hint" id="stageSum"></p>
     </div>
 
-    <div class="card">
-      <h2>Repeated buildings</h2>
-      <div class="seg" id="repeatMode">
-        <button data-r="0" class="on">Not applicable</button>
-        <button data-r="1">Repeated units</button>
-      </div>
-      <div id="repeatInputs" style="display:none">
-        <div class="row">
-          <div><label>Total units</label><input type="number" id="rUnits" inputmode="numeric" placeholder="12" min="1"></div>
-          <div><label>Prototype designs</label><input type="number" id="rProtos" inputmode="numeric" placeholder="1" min="1"></div>
-        </div>
-        <label>Stages 1 to 4 on each repeat (% of guideline)</label>
-        <input type="number" id="rPct" inputmode="decimal" placeholder="35" min="0" max="100">
-        <p class="hint" id="repeatHint"></p>
-      </div>
+    <div class="card" id="repeatCard" style="display:none">
+      <h2>Repeated designs</h2>
+      <label>Stages 1 to 4 on each repeat (% of guideline)</label>
+      <input type="number" id="rPct" inputmode="decimal" placeholder="35" min="0" max="100">
+      <p class="hint" id="repeatHint"></p>
       <p class="hint" id="repeatNote"></p>
     </div>
 
@@ -309,37 +318,58 @@
     return b[b.length - 1];
   }
   const isStage14 = (id) => /^[1-4]/.test(String(id));
-  function repeatInfo(p) {
-    const r = p.repeat;
-    if (!r || !r.on) return null;
-    const units = Math.max(1, Math.floor(Number(r.units) || 0));
-    const protos = Math.min(units, Math.max(1, Math.floor(Number(r.prototypes) || 1)));
-    const repeats = units - protos;
-    if (repeats < 1) return null;
-    const pct = Math.min(100, Math.max(0, Number(r.pct)));
-    const pctUsed = isNaN(pct) ? F.repeatedBuildings.stages14Percent : pct;
-    // Share of the stages 1-4 fee that is payable: prototypes in full, repeats at pctUsed%.
-    const factor = (protos + repeats * pctUsed / 100) / units;
-    return { units, protos, repeats, pct: pctUsed, factor };
+  function repeatPct(p) {
+    const v = Number(p.repeat && p.repeat.pct);
+    return isNaN(v) || p.repeat.pct === "" ? F.repeatedBuildings.stages14Percent : Math.min(100, Math.max(0, v));
+  }
+  // Share of the stages 1-4 fee payable on a group of `units` identical buildings:
+  // prototypes in full, each repeat at pct%.
+  function repeatFactor(units, protos, pct) { return (protos + (units - protos) * pct / 100) / units; }
+  // The buildings that make up the value of works. One or several; each bespoke (factor 1)
+  // or a repeated design (factor < 1 on stages 1 to 4).
+  function components(p) {
+    const pct = repeatPct(p);
+    if (p.mode === "scheme") {
+      return (p.blds || []).map((b) => {
+        const qty = Math.max(1, Math.floor(Number(b.qty) || 1));
+        const byArea = (b.basis || "area") === "area";
+        const unit = byArea ? (Number(b.area) || 0) * (Number(b.rate) || 0) : (Number(b.value) || 0);
+        const protos = Math.min(qty, Math.max(1, Math.floor(Number(b.protos) || 1)));
+        const rep = !!b.rep && qty > protos;
+        return { name: b.name || (b.rep ? "Unit type" : "Building"), byArea, area: Number(b.area) || 0, rate: Number(b.rate) || 0, unit, qty, value: unit * qty, rep, protos, repeats: rep ? qty - protos : 0, factor: rep ? repeatFactor(qty, protos, pct) : 1, isUnit: !!b.rep };
+      }).filter((c) => c.value > 0);
+    }
+    const value = (p.basis || "area") === "area" ? (Number(p.area) || 0) * (Number(p.rate) || 0) : (Number(p.value) || 0);
+    if (value < 1) return [];
+    return [{ name: p.name || "Project", value, qty: 1, rep: false, protos: 1, repeats: 0, factor: 1 }];
+  }
+  function repeatInfo(p, comps) {
+    const reps = comps.filter((c) => c.rep);
+    if (!reps.length) return null;
+    const total = comps.reduce((s, c) => s + c.value, 0);
+    // Weighted by value: bespoke buildings count in full, repeated groups at their factor.
+    const factor = comps.reduce((s, c) => s + c.value * c.factor, 0) / total;
+    return { pct: repeatPct(p), factor, groups: reps, units: reps.reduce((s, c) => s + c.qty, 0), protos: reps.reduce((s, c) => s + c.protos, 0), repeats: reps.reduce((s, c) => s + c.repeats, 0), bespoke: comps.filter((c) => !c.rep) };
   }
   function disbInfo(p) {
     const items = (p.disb || []).map((d) => {
       const cost = Number(d.amount) || 0;
       const attendPct = Number(d.attend);
       const att = cost * (isNaN(attendPct) ? 0 : attendPct) / 100;
-      return { cat: d.cat || "", desc: d.desc || "", cost, attendPct: isNaN(attendPct) ? 0 : attendPct, att, line: cost + att };
+      return { cat: d.cat || "Disbursement", desc: d.desc || "", cost, attendPct: isNaN(attendPct) ? 0 : attendPct, att, line: cost + att };
     }).filter((d) => d.cost > 0);
     return { items, total: items.reduce((s, d) => s + d.line, 0) };
   }
   function calc(p) {
-    const value = p.mode === "area" ? (Number(p.area) || 0) * (Number(p.rate) || 0) : (Number(p.value) || 0);
+    const comps = components(p);
+    const value = comps.reduce((s, c) => s + c.value, 0);
     const disb = disbInfo(p);
-    if (value < 1) return { value: 0, full: 0, stagesPct: 0, stageFee: 0, discount: 0, fee: 0, vat: 0, total: 0, bracket: null, stageLines: [], repeat: null, disb };
+    if (value < 1) return { value: 0, full: 0, stagesPct: 0, stageFee: 0, discount: 0, fee: 0, vat: 0, total: 0, bracket: null, stageLines: [], repeat: null, disb, comps };
     const br = bracketFor(p.complexity, value);
     const primary = br[2];
     const secondary = (value - br[0]) * br[3] / 100;
     const full = primary + secondary;
-    const repeat = repeatInfo(p);
+    const repeat = repeatInfo(p, comps);
     let stagesPct = 0, stageFee = 0;
     const stageLines = [];
     p.stages.forEach((st) => {
@@ -353,7 +383,7 @@
     const discount = stageFee * (Number(p.discount) || 0) / 100;
     const fee = stageFee - discount;
     const vat = settings.vat ? (fee + disb.total) * F.vatRate : 0;
-    return { value, bracket: br, primary, secondary, full, stagesPct, stageFee, discount, fee, vat, total: fee + disb.total + vat, stageLines, repeat, disb };
+    return { value, bracket: br, primary, secondary, full, stagesPct, stageFee, discount, fee, vat, total: fee + disb.total + vat, stageLines, repeat, disb, comps };
   }
 
   // ---------- navigation ----------
@@ -381,6 +411,7 @@
   // ---------- home ----------
   function renderHome() {
     const ul = $("plist"); ul.innerHTML = "";
+    projects.forEach(migrate);
     $("emptyMsg").style.display = projects.length ? "none" : "";
     projects.slice().sort((a, b) => b.updated - a.updated).forEach((p) => {
       const c = calc(p);
@@ -396,10 +427,10 @@
   }
   $("newBtn").onclick = () => {
     current = {
-      id: Date.now().toString(36), name: "", client: "", email: "", mode: "area", area: "", rate: settings.rate || "", value: "",
+      id: Date.now().toString(36), name: "", client: "", email: "", mode: "single", basis: "area", area: "", rate: settings.rate || "", value: "",
       complexity: "medium", discount: "", notes: "",
-      repeat: { on: false, units: "", prototypes: 1, pct: F.repeatedBuildings.stages14Percent },
-      disb: [],
+      repeat: { pct: F.repeatedBuildings.stages14Percent },
+      disb: [], blds: [],
       stages: F.stages.map((s) => ({ id: s.id, name: s.name, percent: s.percent, on: true })),
       created: Date.now(), updated: Date.now()
     };
@@ -410,13 +441,11 @@
   // ---------- edit ----------
   function fillEdit() {
     const p = current;
-    // proposals saved by the first version have no repeat / disb fields
-    if (!p.repeat) p.repeat = { on: false, units: "", prototypes: 1, pct: F.repeatedBuildings.stages14Percent };
-    if (!p.disb) p.disb = [];
+    migrate(p);
+    renderBlds();
     $("deleteConfirm").style.display = "none"; $("deleteBtn").style.display = "";
     $("pName").value = p.name; $("pClient").value = p.client; $("pEmail").value = p.email || "";
-    $("rUnits").value = p.repeat.units; $("rProtos").value = p.repeat.prototypes; $("rPct").value = p.repeat.pct;
-    setRepeat(p.repeat.on, false);
+    $("rPct").value = p.repeat.pct;
     $("repeatNote").textContent = F.repeatedBuildings.note;
     $("disbNote").textContent = "Reimbursed at cost. The gazette allows a minimum of " + F.disbursementAttendancePercent + "% on top for attendance where the fee is project cost-based. Set it to 0 to charge cost only.";
     renderDisb();
@@ -436,34 +465,60 @@
       ul.appendChild(li);
     });
     $("cowNote").textContent = F.costOfWorksNote;
+    setBasis(p.basis || "area", false);
     recalc();
+  }
+  // Proposals saved by earlier versions used other field names; bring them up to date.
+  function migrate(p) {
+    if (!p.disb) p.disb = [];
+    if (!p.blds) p.blds = [];
+    if (!p.repeat) p.repeat = {};
+    if (p.repeat.pct === undefined) p.repeat.pct = F.repeatedBuildings.stages14Percent;
+    if (p.mode === "area") { p.mode = "single"; p.basis = "area"; }
+    if (p.mode === "direct") { p.mode = "single"; p.basis = "value"; }
+    if (p.mode === "multi") p.mode = "scheme";
+    if (!p.mode) p.mode = "single";
+    if (!p.basis) p.basis = "area";
+    // An old single project with "repeated units" switched on becomes a scheme with one repeated row.
+    if (p.mode === "single" && p.repeat.on && Number(p.repeat.units) > 1) {
+      p.mode = "scheme";
+      p.blds = [{ name: p.name || "Unit", basis: p.basis, area: p.area, rate: p.rate, value: p.value, qty: p.repeat.units, rep: true, protos: p.repeat.prototypes || 1 }];
+    }
+    delete p.repeat.on; delete p.repeat.units; delete p.repeat.prototypes;
+    p.blds.forEach((b) => {
+      if (!b.basis) b.basis = "area"; if (b.value === undefined) b.value = "";
+      // A row with a quantity above 1 is a repeated unit type by definition.
+      if (!b.rep && Number(b.qty) > 1) b.rep = true;
+      if (!b.rep) b.qty = 1;
+    });
   }
   function readEdit() {
     const p = current;
     p.name = $("pName").value.trim(); p.client = $("pClient").value.trim(); p.email = $("pEmail").value.trim();
     p.area = $("pArea").value; p.rate = $("pRate").value; p.value = $("pValue").value;
     p.discount = $("pDiscount").value; p.notes = $("pNotes").value.trim();
-    p.repeat.units = $("rUnits").value; p.repeat.prototypes = $("rProtos").value; p.repeat.pct = $("rPct").value;
+    p.repeat.pct = $("rPct").value;
   }
-  function setRepeat(on, re = true) {
-    current.repeat.on = !!on;
-    $("repeatMode").querySelectorAll("button").forEach((b) => b.classList.toggle("on", (b.dataset.r === "1") === !!on));
-    $("repeatInputs").style.display = on ? "" : "none";
+  $("rPct").oninput = recalc;
+  function setBasis(b, re = true) {
+    current.basis = b;
+    $("singleBasis").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.b === b));
+    $("areaInputs").style.display = b === "area" ? "" : "none";
+    $("directInputs").style.display = b === "value" ? "" : "none";
     if (re) recalc();
   }
-  $("repeatMode").onclick = (e) => { const b = e.target.closest("button"); if (b) setRepeat(b.dataset.r === "1"); };
-  ["rUnits", "rProtos", "rPct"].forEach((id) => { $(id).oninput = recalc; });
+  $("singleBasis").onclick = (e) => { const b = e.target.closest("button"); if (b) setBasis(b.dataset.b); };
 
   function renderDisb() {
     const ul = $("disbList"); ul.innerHTML = "";
-    const opts = F.disbursementCategories.map((c) => `<option>${esc(c)}</option>`).join("");
+    const opts = `<option value="">Select a category</option>` + F.disbursementCategories.map((c) => `<option>${esc(c)}</option>`).join("");
     current.disb.forEach((d, i) => {
       const li = document.createElement("li");
       li.innerHTML = `<select class="cat">${opts}</select>
         <div class="row"><input type="text" class="desc" placeholder="Detail (optional)"><input type="number" class="amt" inputmode="decimal" placeholder="Cost R"></div>
         <div class="row" style="align-items:center"><small>Attendance %</small><input type="number" class="att" inputmode="decimal" min="0" max="100" style="max-width:90px"><button class="rm" type="button">Remove</button></div>`;
       const sel = li.querySelector(".cat"), desc = li.querySelector(".desc"), amt = li.querySelector(".amt"), att = li.querySelector(".att");
-      sel.value = d.cat || F.disbursementCategories[0]; desc.value = d.desc || ""; amt.value = d.amount; att.value = d.attend;
+      sel.value = d.cat || ""; desc.value = d.desc || ""; amt.value = d.amount; att.value = d.attend;
       sel.onchange = () => { d.cat = sel.value; recalc(); };
       desc.oninput = () => { d.desc = desc.value; recalc(); };
       amt.oninput = () => { d.amount = amt.value; recalc(); };
@@ -473,17 +528,72 @@
     });
   }
   $("addDisbBtn").onclick = () => {
-    current.disb.push({ cat: F.disbursementCategories[0], desc: "", amount: "", attend: F.disbursementAttendancePercent });
+    current.disb.push({ cat: "", desc: "", amount: "", attend: F.disbursementAttendancePercent });
     renderDisb();
-    const last = $("disbList").lastElementChild; if (last) last.querySelector(".amt").focus();
+    const last = $("disbList").lastElementChild; if (last) last.querySelector(".cat").focus();
+  };
+  const MODE_HINT = {
+    single: "One project, priced as a whole. A house with its outbuildings, garages or staff quarters is a single project.",
+    scheme: "Several buildings on one site under one contract: an estate, a complex, a sectional title scheme. Each building type is a row."
   };
   function setMode(m, re = true) {
     current.mode = m;
     $("valueMode").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
-    $("areaInputs").style.display = m === "area" ? "" : "none";
-    $("directInputs").style.display = m === "direct" ? "" : "none";
+    $("modeHint").textContent = MODE_HINT[m] || "";
+    $("singleInputs").style.display = m === "single" ? "" : "none";
+    $("schemeInputs").style.display = m === "scheme" ? "" : "none";
+    $("repeatCard").style.display = m === "scheme" ? "" : "none";
+    if (m === "scheme" && current.blds.length === 0) { current.blds.push(newBld(false), newBld(true)); renderBlds(); }
     if (re) recalc();
   }
+  const newBld = (rep) => ({ name: "", basis: "area", area: "", rate: settings.rate || "", value: "", qty: rep ? "" : 1, rep: !!rep, protos: 1 });
+  // One row in either list. Primary rows: name, basis, size or value. Repeat rows: name, quantity, size or value of ONE unit.
+  function renderBlds() {
+    $("primList").innerHTML = ""; $("repList").innerHTML = "";
+    let unitNo = 0;
+    current.blds.forEach((b, i) => {
+      const li = document.createElement("li");
+      if (b.rep) unitNo++;
+      li.innerHTML = b.rep
+        ? `<div class="row" style="align-items:center"><input type="text" class="nm" placeholder="Unit type ${unitNo}" style="flex:2"><input type="number" class="qty" inputmode="numeric" min="1" placeholder="Quantity" style="flex:1"></div>
+           <div class="seg small" style="margin-top:6px"><button type="button" data-b="area">Size × rate per unit</button><button type="button" data-b="value">Value per unit</button></div>
+           <div class="row byArea"><input type="number" class="area" inputmode="decimal" placeholder="Size of one unit m²"><input type="number" class="rate" inputmode="decimal" placeholder="Rate R/m²"></div>
+           <div class="row byValue"><input type="number" class="value" inputmode="decimal" placeholder="Value of one unit R"></div>
+           <div class="row" style="align-items:center;justify-content:space-between"><small class="val"></small><button class="rm" type="button">Remove</button></div>`
+        : `<input type="text" class="nm" placeholder="e.g. Clubhouse, Gym, Gatehouse">
+           <div class="seg small" style="margin-top:6px"><button type="button" data-b="area">Area × rate</button><button type="button" data-b="value">Value</button></div>
+           <div class="row byArea"><input type="number" class="area" inputmode="decimal" placeholder="Area m²"><input type="number" class="rate" inputmode="decimal" placeholder="Rate R/m²"></div>
+           <div class="row byValue"><input type="number" class="value" inputmode="decimal" placeholder="Value of this building R"></div>
+           <div class="row" style="align-items:center;justify-content:space-between"><small class="val"></small><button class="rm" type="button">Remove</button></div>`;
+      const q = (s) => li.querySelector(s);
+      const nm = q(".nm"), area = q(".area"), rate = q(".rate"), value = q(".value"), qty = q(".qty"), val = q(".val"), seg = q(".seg");
+      nm.value = b.name || ""; area.value = b.area; rate.value = b.rate; value.value = b.value || ""; if (qty) qty.value = b.qty;
+      const paint = () => {
+        seg.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.b === b.basis));
+        q(".byArea").style.display = b.basis === "area" ? "" : "none";
+        q(".byValue").style.display = b.basis === "value" ? "" : "none";
+        const unit = b.basis === "area" ? (Number(b.area) || 0) * (Number(b.rate) || 0) : (Number(b.value) || 0);
+        const n = b.rep ? Math.floor(Number(b.qty) || 0) : 1;
+        val.textContent = !unit ? "" : b.rep ? (n ? `${fmt0(unit)} per unit × ${n} = ${fmt0(unit * n)}` : `${fmt0(unit)} per unit · enter the quantity`) : fmt0(unit);
+      };
+      const upd = () => {
+        b.name = nm.value; b.area = area.value; b.rate = rate.value; b.value = value.value; if (qty) b.qty = qty.value;
+        paint(); recalc();
+      };
+      [nm, area, rate, value, qty].forEach((el) => { if (el) el.oninput = upd; });
+      seg.onclick = (e) => { const x = e.target.closest("button"); if (!x) return; b.basis = x.dataset.b; paint(); recalc(); };
+      q(".rm").onclick = () => { current.blds.splice(i, 1); renderBlds(); recalc(); };
+      $(b.rep ? "repList" : "primList").appendChild(li);
+      paint();
+    });
+  }
+  function addBld(rep) {
+    current.blds.push(newBld(rep));
+    renderBlds();
+    const last = $(rep ? "repList" : "primList").lastElementChild; if (last) last.querySelector(rep ? ".qty" : ".nm").focus();
+  }
+  $("addPrimBtn").onclick = () => addBld(false);
+  $("addRepBtn").onclick = () => addBld(true);
   function setComplexity(c, re = true) {
     current.complexity = c;
     $("complexity").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.c === c));
@@ -503,11 +613,12 @@
     else {
       $("liveSub").textContent = fmt0(c.value) + " value of works · " + F.complexities[current.complexity].label.toLowerCase() + " · " + pct(c.stagesPct) + " of stages" + (c.discount ? " · less " + pct(Number(current.discount)) : "");
     }
-    $("areaResult").textContent = current.mode === "area" && c.value ? "Value of works: " + fmt0(c.value) : "";
-    if (current.repeat.on) {
+    $("areaResult").textContent = current.mode === "single" && current.basis === "area" && c.value ? "Value of works: " + fmt0(c.value) : "";
+    $("multiResult").textContent = current.mode === "scheme" && c.value ? "Total value of works: " + fmt0(c.value) : "";
+    if (current.mode === "scheme") {
       $("repeatHint").textContent = c.repeat
-        ? `${c.repeat.protos} prototype${c.repeat.protos > 1 ? "s" : ""} at full fee, ${c.repeat.repeats} repeat${c.repeat.repeats > 1 ? "s" : ""} at ${pct(c.repeat.pct)} on stages 1 to 4. Stages 5 and 6 at full fee.`
-        : "Enter more total units than prototype designs to apply the repeat adjustment.";
+        ? `${c.repeat.bespoke.length} bespoke building${c.repeat.bespoke.length === 1 ? "" : "s"} at full fee. Repeated: ${c.repeat.groups.map((g) => `${g.name} (${g.protos} prototype${g.protos > 1 ? "s" : ""} + ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join(", ")} at ${pct(c.repeat.pct)} on stages 1 to 4. Stages 5 and 6 at full fee.`
+        : "No repeated units yet. Add a unit type with a quantity above 1 to apply the adjustment.";
     }
     const sum = current.stages.reduce((s, st) => s + (Number(st.percent) || 0), 0);
     $("stageSum").textContent = "Stage percentages total " + pct(sum) + (Math.abs(sum - 100) > 0.01 ? " (gazette default is 100%)" : " · " + pct(c.stagesPct) + " selected");
@@ -551,9 +662,19 @@
     const initials = (settings.firm || "FP").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
     const logo = settings.logo ? `<img class="logo" src="${settings.logo}" alt="">` : `<div class="logo ph">${esc(initials)}</div>`;
     const stageRows = c.stageLines.map((s) => `<tr><td>Stage ${esc(s.id)} · ${esc(s.name)}${s.adjusted ? " *" : ""}</td><td>${pct(s.pc)}</td><td>${fmt(s.amt)}</td></tr>`).join("");
-    const worksLine = p.mode === "area" ? `${esc(p.area)} m² × ${fmt0(Number(p.rate) || 0)} per m² = <b>${fmt0(c.value)}</b>` : `<b>${fmt0(c.value)}</b>`;
-    const repeatLine = c.repeat ? `<p>Repeated buildings: ${c.repeat.units} units, ${c.repeat.protos} prototype design${c.repeat.protos > 1 ? "s" : ""}, ${c.repeat.repeats} repeat${c.repeat.repeats > 1 ? "s" : ""}.</p>` : "";
-    const repeatNote = c.repeat ? `<p class="meta">* Stages 1 to 4 adjusted for repeated buildings (clause 23): prototype${c.repeat.protos > 1 ? "s" : ""} at full fee, each repeat at ${pct(c.repeat.pct)} of the guideline fee for those stages. Stages 5 and 6 at full fee.</p>` : "";
+    let worksLine;
+    if (p.mode === "scheme") {
+      const prim = c.comps.filter((b) => !b.isUnit), units = c.comps.filter((b) => b.isUnit);
+      const row = (b) => `<tr><td>${esc(b.name)}<br><span class="meta">${b.byArea ? `${b.area} m² × ${fmt0(b.rate)} per m²` : "estimated value"}${b.isUnit ? ` per unit × ${b.qty}` : ""}</span></td><td>${fmt0(b.value)}</td></tr>`;
+      worksLine = `<table>
+        ${prim.length ? `<tr class="sub"><td colspan="2">Primary buildings</td></tr>${prim.map(row).join("")}` : ""}
+        ${units.length ? `<tr class="sub"><td colspan="2">Repeated units</td></tr>${units.map(row).join("")}` : ""}
+        <tr class="tot"><td>Total value of works</td><td>${fmt0(c.value)}</td></tr></table>`;
+    } else {
+      worksLine = p.basis === "area" ? `${esc(p.area)} m² × ${fmt0(Number(p.rate) || 0)} per m² = <b>${fmt0(c.value)}</b>` : `<b>${fmt0(c.value)}</b>`;
+    }
+    const repeatLine = c.repeat ? `<p>Repeated buildings: ${c.repeat.groups.map((g) => `${esc(g.name)}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${c.repeat.bespoke.length ? ` Bespoke at full fee: ${c.repeat.bespoke.map((b) => esc(b.name)).join(", ")}.` : ""}</p>` : "";
+    const repeatNote = c.repeat ? `<p class="meta">* Stages 1 to 4 adjusted for repeated buildings (clause 23): bespoke buildings and prototypes at full fee, each repeat at ${pct(c.repeat.pct)} of the guideline fee for those stages, weighted by value of works. Stages 5 and 6 at full fee.</p>` : "";
     const disbRows = c.disb.items.map((d) => `<tr><td>${esc(d.cat)}${d.desc ? " · " + esc(d.desc) : ""}${d.attendPct ? ` <span class="meta">(cost ${fmt(d.cost)} + ${pct(d.attendPct)} attendance)</span>` : ""}</td><td>${fmt(d.line)}</td></tr>`).join("");
     const disbBlock = c.disb.items.length ? `<h4>Disbursements (estimate)</h4><table>${disbRows}<tr class="tot"><td>Disbursements</td><td>${fmt(c.disb.total)}</td></tr></table>` : "";
     const subtotalRow = c.disb.items.length ? `<tr><td>Disbursements (estimate)</td><td>${fmt(c.disb.total)}</td></tr><tr class="${settings.vat ? "" : "tot"}"><td>Fee and disbursements${settings.vat ? " (excl. VAT)" : ""}</td><td>${fmt(c.fee + c.disb.total)}</td></tr>` : "";
@@ -564,7 +685,7 @@
       <p class="meta">Prepared for ${esc(p.client || "the client")} · ${d(today)} · valid until ${d(validTo)}</p>
 
       <h4>Basis</h4>
-      <p>Estimated value of works: ${worksLine}</p>
+      ${p.mode === "scheme" ? `<p>Development scheme, estimated value of works:</p>${worksLine}` : `<p>Estimated value of works: ${worksLine}</p>`}
       <p>Complexity: ${esc(F.complexities[p.complexity].label)}</p>
       ${repeatLine}
       <p class="meta">${esc(F.costOfWorksNote)}</p>
@@ -603,7 +724,7 @@
       `Estimated value of works: ${fmt0(c.value)} (${F.complexities[p.complexity].label.toLowerCase()})`,
       `Full-service guideline fee: ${fmt(c.full)}`,
       `Stages included: ${p.stages.filter((s) => s.on).map((s) => s.id).join(", ")} (${pct(c.stagesPct)})`,
-      c.repeat ? `Repeated buildings: ${c.repeat.units} units, ${c.repeat.protos} prototype(s); stages 1 to 4 on each repeat at ${pct(c.repeat.pct)}` : null,
+      c.repeat ? `Repeated buildings: ${c.repeat.groups.map((g) => `${g.name} ${g.qty} units (${g.protos} prototype(s))`).join(", ")}; stages 1 to 4 on each repeat at ${pct(c.repeat.pct)}` : null,
       c.discount ? `Discount: ${pct(Number(p.discount))}` : null,
       `Professional fee${settings.vat ? " excl. VAT" : ""}: ${fmt(c.fee)}`,
       c.disb.items.length ? `Disbursements (estimate): ${fmt(c.disb.total)}` : null,
