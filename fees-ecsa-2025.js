@@ -113,7 +113,7 @@
     sourceUrl: "https://www.gov.za/sites/default/files/gcis_document/202505/52691bn783.pdf",
     guidelineWording: "This guideline scope of services and professional fees is a guideline determined under section 34(2) of the Engineering Profession Act, 2000; fees are agreed between the client and the consulting engineer.",
     costOfWorksNote: "Cost of the works (clause 1.2.7): the amount certifiable to contractors for the works designed, specified or administered by the engineer, excluding VAT, including escalation and a pro-rata share of preliminary and general items.",
-    belowTableNote: "The ECSA tables start at a cost of works of R1 050 000. For projects up to R1 000 000 the gazette provides for a lump sum or time-based fee: use Hours only.",
+    belowTableNote: "The ECSA tables start at a cost of works of R1 050 000. For projects up to R1 000 000 the gazette provides for a lump sum or time-based fee: choose Lump sum or Hours only under 'How is this job charged?'.",
     feeLabel: "Basic fee for normal services",
     vatRate: 0.15,
     selectors: [

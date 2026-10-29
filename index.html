@@ -30,7 +30,7 @@
   .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px; font-weight: 600; }
   label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
   label:first-of-type { margin-top: 0; }
-  input[type=text], input[type=number], input[type=email], input[type=tel], select, textarea {
+  input[type=text], input[type=number], input[type=email], input[type=tel], input[type=date], select, textarea {
     width: 100%; font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink);
   }
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
@@ -69,15 +69,40 @@
   .pill.ok { background: #dcfce7; color: var(--ok); }
   .plist .t span.due { color: var(--warn); font-weight: 600; }
 
-  /* Disbursement rows */
+  /* Rows (disbursements, buildings, hours, invoices) */
   .disb { list-style: none; }
   .disb li { border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
   .disb .row { margin-top: 6px; }
   .disb .rm { background: none; border: none; color: #b91c1c; font-size: 13px; padding: 6px 0 0 10px; cursor: pointer; }
   .disb .lnk { background: none; border: none; color: var(--accent); font-size: 13px; font-weight: 600; padding: 6px 0 0 10px; cursor: pointer; }
+  .disb small { color: var(--muted); font-size: 12px; }
   .doc .sig { display: flex; gap: 12px; margin-top: 22px; }
   .doc .sig div { flex: 1; border-top: 1px solid var(--ink); padding-top: 4px; font-size: 11px; color: var(--muted); }
-  .disb small { color: var(--muted); font-size: 12px; }
+
+  /* Discipline tabs (multi-disciplinary tile) */
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .tabs button { font: inherit; font-size: 13px; padding: 8px 10px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; }
+  .tabs button.inc { border-color: var(--accent); font-weight: 600; }
+  .tabs button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .panel { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-top: 6px; }
+  .panel h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 14px 0 6px; font-weight: 600; }
+  .panel .inc { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; }
+  .panel .inc input { width: 22px; height: 22px; accent-color: var(--accent); }
+
+  /* Fee lines */
+  .lines { list-style: none; }
+  .lines > li { border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px; background: #fff; }
+  .lines .head { display: flex; align-items: center; gap: 10px; padding: 12px 12px; cursor: pointer; }
+  .lines .head .ic { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex: none; }
+  .lines .head .t { flex: 1; min-width: 0; }
+  .lines .head .t b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lines .head .t small { color: var(--muted); font-size: 12px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lines .head .amt { font-weight: 700; white-space: nowrap; font-size: 14px; }
+  .lines .head .chev { color: var(--muted); font-size: 18px; width: 16px; text-align: center; }
+  .lines .body { display: none; padding: 4px 12px 12px; border-top: 1px solid var(--line); }
+  .lines > li.open .body { display: block; }
+  .lines .body h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 14px 0 6px; font-weight: 600; }
+  .lines .rmline { background: none; border: none; color: #b91c1c; font-size: 13px; padding: 10px 0 0; cursor: pointer; }
 
   /* Live total */
   .total { background: var(--accent); color: var(--accent-ink); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; position: sticky; top: calc(56px + env(safe-area-inset-top)); z-index: 5; }
@@ -118,6 +143,7 @@
   .doc .firm span { display: block; font-size: 12px; color: var(--muted); }
   .doc h3 { font-size: 16px; margin: 14px 0 6px; }
   .doc h4 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 14px 0 6px; font-weight: 600; }
+  .doc h5 { font-size: 14px; margin: 16px 0 4px; padding-top: 10px; border-top: 1px solid var(--line); }
   .doc p { font-size: 14px; margin: 4px 0; }
   .doc table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 6px; }
   .doc td { padding: 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -150,7 +176,7 @@
 <div class="app">
   <div class="bar">
     <button id="backBtn" aria-label="Back" style="display:none">&#8249; Back</button>
-    <h1 id="barTitle">Fee Proposals</h1>
+    <h1 id="barTitle">Professional Fees</h1>
     <button id="settingsBtn" aria-label="Settings">&#9881;</button>
   </div>
 
@@ -192,14 +218,24 @@
       <input type="email" id="pEmail" placeholder="client@example.com">
     </div>
 
-    <div class="card">
+    <div class="card" id="chargeCard">
       <h2>How is this job charged?</h2>
       <div class="seg" id="timeMode">
         <button data-t="none" class="on">On value of works</button>
         <button data-t="add">Value + hours</button>
         <button data-t="only">Hours only</button>
+        <button data-t="lump">Lump sum</button>
       </div>
       <p class="hint" id="timeModeHint"></p>
+    </div>
+
+    <div class="card" id="lumpCard" style="display:none">
+      <h2>Negotiated lump sum</h2>
+      <label>Agreed fee (R, excl. VAT)</label>
+      <input type="text" class="money" id="lumpAmount" inputmode="decimal" placeholder="e.g. 150 000">
+      <label>What it covers (optional)</label>
+      <input type="text" id="lumpDesc" placeholder="e.g. Design and documentation for the boundary wall">
+      <p class="hint">A once-off fee agreed with the client, for example where the works are below the fee table or the scope is small and clear.</p>
     </div>
 
     <div class="card" id="valueCard">
@@ -217,12 +253,12 @@
         <div id="areaInputs">
           <div class="row">
             <div><label>Area (m²)</label><input type="number" id="pArea" inputmode="decimal" placeholder="350"></div>
-            <div><label>Rate (R per m²)</label><input type="number" id="pRate" inputmode="decimal" placeholder="15000"></div>
+            <div><label>Rate (R per m²)</label><input type="text" class="money" id="pRate" inputmode="decimal" placeholder="15 000"></div>
           </div>
         </div>
         <div id="directInputs" style="display:none">
           <label>Estimated value of works (R)</label>
-          <input type="number" id="pValue" inputmode="decimal" placeholder="5250000">
+          <input type="text" class="money" id="pValue" inputmode="decimal" placeholder="5 250 000">
         </div>
         <p class="hint" id="areaResult"></p>
       </div>
@@ -240,7 +276,7 @@
       <p class="hint" id="cowNote"></p>
     </div>
 
-    <div class="card" id="complexityCard">
+    <div class="card" id="basisCard">
       <h2>Fee basis</h2>
       <div id="selectors"></div>
       <p class="hint" id="complexityHint"></p>
@@ -254,7 +290,7 @@
 
     <div class="card" id="repeatCard" style="display:none">
       <h2>Repeated designs</h2>
-      <label id="rPctLabel">Stages 1 to 4 on each repeat (% of guideline)</label>
+      <label id="rPctLabel">Stages 1 to 4 on each repeat (% of the fee for those stages)</label>
       <input type="number" id="rPct" inputmode="decimal" placeholder="35" min="0" max="100">
       <p class="hint" id="repeatHint"></p>
       <p class="hint" id="repeatNote"></p>
@@ -266,6 +302,13 @@
       <button class="btn secondary" id="addTimeBtn" type="button">+ Add hours</button>
       <p class="hint" id="timeNote"></p>
       <p class="hint" id="timeResult" style="font-weight:600;color:var(--ink)"></p>
+    </div>
+
+    <div class="card" id="linesCard" style="display:none">
+      <h2>Disciplines on this proposal</h2>
+      <div class="tabs" id="discTabs"></div>
+      <p class="hint" id="discSummary"></p>
+      <div id="discPanel"></div>
     </div>
 
     <div class="card">
@@ -324,7 +367,6 @@
       <button class="btn secondary" id="addInvBtn" type="button">+ Add an invoice</button>
       <button class="btn ghost" id="planInvBtn" type="button">Plan invoices from the work stages</button>
       <p class="hint">To invoice: add a line (the number is given automatically), describe it, enter the amount, then tap <b>Send PDF</b>. When the money comes in, tick <b>Paid</b>. Planned lines are drafts: they get a number when you first send them.</p>
-      <p class="hint">Gazette clause 27: stages 1 to 4.2 are invoiced against deliverables; stage 5 in equal monthly instalments over the construction period. Edit the planned lines to suit.</p>
     </div>
     <button class="btn ghost" id="invBackBtn">Back to the proposal</button>
   </section>
@@ -352,7 +394,7 @@
     <div class="card">
       <h2>Defaults</h2>
       <label>Default rate (R per m²)</label>
-      <input type="number" id="sRate" inputmode="decimal" placeholder="15000">
+      <input type="text" class="money" id="sRate" inputmode="decimal" placeholder="15 000">
       <label>VAT</label>
       <div class="seg" id="sVat">
         <button data-v="1" class="on">Registered: add 15%</button>
@@ -379,164 +421,83 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="fees-2026.js?v=20261028d"></script>
-<script src="fees-ecsa-2025.js?v=20261029a"></script>
-<script src="fees-sacqsp-2024.js?v=20261028d"></script>
+<script src="fees-2026.js?v=20261029c"></script>
+<script src="fees-ecsa-2025.js?v=20261029b"></script>
+<script src="fees-sacqsp-2024.js?v=20261029c"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 (function () {
-  // The six built-environment councils. A discipline is live once a fee module with that id
-  // has registered itself in window.FEE_MODULES (see fees-2026.js).
+  // ===================================================================================
+  // Disciplines and fee modules
+  // ===================================================================================
   const DISCIPLINES = [
     { id: "sacap",   name: "Architecture",                        council: "SACAP",   ic: "A" },
     { id: "ecsa",    name: "Engineering",                         council: "ECSA",    ic: "E" },
     { id: "sacqsp",  name: "Quantity surveying",                  council: "SACQSP",  ic: "Q" },
     { id: "sacpcmp", name: "Project and construction management", council: "SACPCMP", ic: "P" },
     { id: "saclap",  name: "Landscape architecture",              council: "SACLAP",  ic: "L" },
-    { id: "sacpvp",  name: "Property valuation",                  council: "SACPVP",  ic: "V" }
+    { id: "sacpvp",  name: "Property valuation",                  council: "SACPVP",  ic: "V" },
+    { id: "multi",   name: "Multi-disciplinary",                  council: "Architecture, QS and engineering disciplines on one proposal", ic: "M", module: "sacap" }
   ];
+  // The disciplines a multi-disciplinary proposal can include. Architecture and QS are priced on the
+  // project's value of works; each engineering discipline on the value of ITS OWN works (e.g. the
+  // structural works, the electrical installation), which is how the ECSA tables are meant to be read.
+  const MULTI_DISC = [
+    { key: "arch", name: "Architecture",            module: "sacap" },
+    { key: "qs",   name: "Quantity surveying",      module: "sacqsp" },
+    { key: "str",  name: "Structural engineering",  module: "ecsa", table: "str_bld",  own: "structural works" },
+    { key: "civ",  name: "Civil engineering",       module: "ecsa", table: "civ_bld",  own: "civil works" },
+    { key: "mech", name: "Mechanical engineering",  module: "ecsa", table: "mech_bld", own: "mechanical installation" },
+    { key: "elec", name: "Electrical engineering",  module: "ecsa", table: "elec_bld", own: "electrical installation" }
+  ];
+  const isMulti = (p) => p && p.discipline === "multi";
+  const moduleForDiscipline = (id) => { const d = DISCIPLINES.find((x) => x.id === id); return MODULES[(d && d.module) || id]; };
   const MODULES = window.FEE_MODULES || {};
-  // An older fees-2026.js (before 28 Oct) defines SACAP_FEES but does not register it; accept it anyway.
   if (!MODULES.sacap && window.SACAP_FEES) MODULES.sacap = Object.assign({ id: "sacap", discipline: "Architecture", council: "South African Council for the Architectural Profession (SACAP)", country: "South Africa" }, window.SACAP_FEES);
-  let disc = null;   // the chosen discipline id
-  let F = null;      // its fee module (tables, stages, wording)
+  const VAT_RATE = 0.15;
+  let disc = null;   // the discipline chosen on the front door (the practice's own)
+  let F = null;      // its module: defaults for new proposals
   const $ = (id) => document.getElementById(id);
+  // Reads a number typed with thousand spaces or a decimal comma: "125 000 000" -> 125000000, "12,5" -> 12.5
+  const num = (v) => Number(typeof v === "string" ? v.replace(/\s/g, "").replace(",", ".") : v);
   const LS_PROJECTS = "feeapp.projects.v1";
   const LS_SETTINGS = "feeapp.settings.v1";
 
-  // ---------- storage ----------
+  // ===================================================================================
+  // Storage and settings
+  // ===================================================================================
   function load(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
   function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { toast("Could not save on this phone"); } }
-
   let settings = Object.assign({ firm: "", tag: "", contact: "", logo: "", colour: "#1f2a44", rate: 15000, vat: 1, valid: 30, vatNo: "", invPrefix: "INV-", invNext: 1, terms: "Payable on presentation", bank: "" }, load(LS_SETTINGS, {}));
   let projects = load(LS_PROJECTS, []);
-  let current = null; // the project being edited
+  let current = null;
 
-  // ---------- money ----------
-  // South African style: space for thousands, comma for decimals. Built from the en-US
-  // form ("1,234.56") so the result is the same on every phone regardless of locale support.
+  // ===================================================================================
+  // Money
+  // ===================================================================================
   const za = (n, dp) => n.toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp }).replace(/,/g, " ").replace(".", ",");
-  const fmt = (n) => "R " + za(Math.round(n * 100) / 100, 2);
-  const fmt0 = (n) => "R " + za(Math.round(n), 0);
+  const fmt = (n) => "R " + za(Math.abs(n) < 0.005 ? 0 : Math.round(n * 100) / 100, 2);
+  const fmt0 = (n) => "R " + za(Math.abs(n) < 0.5 ? 0 : Math.round(n), 0);
   const pct = (n) => (Math.round(n * 100) / 100).toString().replace(".", ",") + "%";
+  function esc(s) { return String(s || "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
+  // Money fields show thousand spaces while you type; the model keeps what was typed and num() reads it.
+  const fmtIn = (v) => { if (v === undefined || v === null || v === "") return ""; const n = num(v); if (isNaN(n)) return String(v); const neg = n < 0 ? "-" : ""; const a = Math.abs(n); const int = Math.floor(a); const dec = Math.round((a - int) * 100); return neg + int.toLocaleString("en-US").replace(/,/g, " ") + (dec ? "," + String(dec).padStart(2, "0") : ""); };
+  document.addEventListener("input", (e) => {
+    const el = e.target; if (!(el instanceof HTMLInputElement) || !el.classList.contains("money")) return;
+    const raw = el.value.replace(/[^\d,.\-]/g, "");
+    const m = /^(-?)(\d*)([,.]\d{0,2})?/.exec(raw) || [];
+    const int = (m[2] || "").replace(/^0+(?=\d)/, "");
+    const out = (m[1] || "") + (int ? Number(int).toLocaleString("en-US").replace(/,/g, " ") : "") + (m[3] ? m[3].replace(".", ",") : "");
+    if (out !== el.value) el.value = out;
+  }, true);
+  const todayIso = () => new Date().toISOString().slice(0, 10);
+  const fmtDate = (iso) => { if (!iso) return ""; const t = new Date(iso + "T00:00:00"); return isNaN(t) ? iso : t.toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" }); };
+  const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
-  // ---------- the fee calculation ----------
-  // A bracket row is [lowest value, highest value or null, primary fee, secondary %, subtract base].
-  // The secondary fee is the % of (value − base). SACAP rows have no base: it is the lowest value.
-  function bracketFor(brackets, value) {
-    for (const row of brackets) { if (value >= row[0] && (row[1] === null || value <= row[1])) return row; }
-    return null;   // below the first bracket (the ECSA tables start at R1 050 001)
-  }
-  const bracketBase = (br) => br[4] !== undefined ? br[4] : br[0];
-  function defaultSel() { const s = {}; F.selectors.forEach((x) => { s[x.id] = Array.isArray(x.default) ? x.default.slice() : x.default; }); return s; }
-  function resolveSel(p) { if (!p.sel) p.sel = defaultSel(); return F.resolve(p.sel); }
-  const repeatStageIds = () => (F.repeatedBuildings && F.repeatedBuildings.stageIds) || ["1", "2", "3", "4.1", "4.2"];
-  const repeatStagesLabel = () => { const ids = repeatStageIds(); return ids.length >= 6 ? "All stages" : `Stages ${ids[0]} to ${ids[ids.length - 1]}`; };
-  const isStage14 = (id) => repeatStageIds().includes(String(id));
-  function repeatPct(p) {
-    const v = Number(p.repeat && p.repeat.pct);
-    return isNaN(v) || p.repeat.pct === "" ? F.repeatedBuildings.stages14Percent : Math.min(100, Math.max(0, v));
-  }
-  // Share of the stages 1-4 fee payable on a group of `units` identical buildings:
-  // prototypes in full, each repeat at pct%.
-  function repeatFactor(units, protos, pct) { return (protos + (units - protos) * pct / 100) / units; }
-  // The buildings that make up the value of works. One or several; each bespoke (factor 1)
-  // or a repeated design (factor < 1 on stages 1 to 4).
-  function components(p) {
-    const pct = repeatPct(p);
-    if (p.mode === "scheme") {
-      return (p.blds || []).map((b) => {
-        const qty = Math.max(1, Math.floor(Number(b.qty) || 1));
-        const byArea = (b.basis || "area") === "area";
-        const unit = byArea ? (Number(b.area) || 0) * (Number(b.rate) || 0) : (Number(b.value) || 0);
-        const protos = Math.min(qty, Math.max(1, Math.floor(Number(b.protos) || 1)));
-        const rep = !!b.rep && qty > protos;
-        return { name: b.name || (b.rep ? "Unit type" : "Building"), byArea, area: Number(b.area) || 0, rate: Number(b.rate) || 0, unit, qty, value: unit * qty, rep, protos, repeats: rep ? qty - protos : 0, factor: rep ? repeatFactor(qty, protos, pct) : 1, isUnit: !!b.rep };
-      }).filter((c) => c.value > 0);
-    }
-    const value = (p.basis || "area") === "area" ? (Number(p.area) || 0) * (Number(p.rate) || 0) : (Number(p.value) || 0);
-    if (value < 1) return [];
-    return [{ name: p.name || "Project", value, qty: 1, rep: false, protos: 1, repeats: 0, factor: 1 }];
-  }
-  function repeatInfo(p, comps) {
-    const reps = comps.filter((c) => c.rep);
-    if (!reps.length) return null;
-    const total = comps.reduce((s, c) => s + c.value, 0);
-    // Weighted by value: bespoke buildings count in full, repeated groups at their factor.
-    const factor = comps.reduce((s, c) => s + c.value * c.factor, 0) / total;
-    return { pct: repeatPct(p), factor, groups: reps, units: reps.reduce((s, c) => s + c.qty, 0), protos: reps.reduce((s, c) => s + c.protos, 0), repeats: reps.reduce((s, c) => s + c.repeats, 0), bespoke: comps.filter((c) => !c.rep) };
-  }
-  function disbInfo(p) {
-    const items = (p.disb || []).map((d) => {
-      const cost = Number(d.amount) || 0;
-      const attendPct = Number(d.attend);
-      const att = cost * (isNaN(attendPct) ? 0 : attendPct) / 100;
-      return { cat: d.cat || "Disbursement", desc: d.desc || "", cost, attendPct: isNaN(attendPct) ? 0 : attendPct, att, line: cost + att };
-    }).filter((d) => d.cost > 0);
-    return { items, total: items.reduce((s, d) => s + d.line, 0) };
-  }
-  // Time-based lines (gazette Table 4, clause 18): role, rate per hour, hours.
-  function timeInfo(p) {
-    const t = p.time || { mode: "none", lines: [] };
-    if (t.mode === "none") return { mode: "none", items: [], total: 0 };
-    const items = (t.lines || []).map((l) => {
-      const rate = Number(l.rate) || 0, hours = Number(l.hours) || 0;
-      return { role: l.role || "Hourly work", desc: l.desc || "", rate, hours, amount: rate * hours };
-    }).filter((l) => l.amount > 0);
-    return { mode: t.mode, items, total: items.reduce((s, l) => s + l.amount, 0) };
-  }
-  function calc(p) {
-    const time = timeInfo(p);
-    const disb = disbInfo(p);
-    const timeOnly = time.mode === "only";
-    const comps = timeOnly ? [] : components(p);
-    const value = comps.reduce((s, c) => s + c.value, 0);
-    const base = { value: 0, full: 0, stagesPct: 0, stageFee: 0, discount: 0, fee: 0, vat: 0, total: 0, bracket: null, stageLines: [], repeat: null, disb, comps, time, timeOnly, primary: 0, secondary: 0 };
-    let r = base;
-    const res = timeOnly ? null : resolveSel(p);
-    if (res) { base.summary = res.summary; base.factorLabel = res.factorLabel || ""; base.res = res; }
-    if (!timeOnly && value >= 1) {
-      const br = bracketFor(res.brackets, value);
-      if (!br) {
-        r = Object.assign({}, base, { value, belowTable: true });
-      } else {
-        const primary = br[2];
-        const secondary = (value - bracketBase(br)) * br[3] / 100;
-        const basic = primary + secondary;             // straight from the table
-        const full = basic * (res.factor || 1);        // after the council's factors / percentages
-        const repeat = repeatInfo(p, comps);
-        let stagesPct = 0, stageFee = 0;
-        const stageLines = [];
-        p.stages.forEach((st) => {
-          if (!st.on) return;
-          const pc = Number(st.percent) || 0;
-          const factor = repeat && isStage14(st.id) ? repeat.factor : 1;
-          const amt = full * pc / 100 * factor;
-          stagesPct += pc; stageFee += amt;
-          stageLines.push({ id: st.id, name: st.name, pc, amt, adjusted: factor !== 1 });
-        });
-        // ECSA clause 4.2.9: a partial service is the sum of the stage points plus typically 10 points.
-        const allOn = p.stages.every((st) => st.on || !(Number(st.percent) > 0));
-        if (F.partialServicePoints && stageLines.length && !allOn) {
-          const pc = F.partialServicePoints, amt = full * pc / 100;
-          stagesPct += pc; stageFee += amt;
-          stageLines.push({ id: "+", name: "Partial service allowance", pc, amt, adjusted: false, partial: true });
-        }
-        r = Object.assign({}, base, { value, bracket: br, primary, secondary, basic, full, stagesPct, stageFee, stageLines, repeat });
-      }
-    }
-    // The discount applies to the professional fee (cost-based part plus hours), not to disbursements.
-    const before = r.stageFee + time.total;
-    r.discount = before * (Number(p.discount) || 0) / 100;
-    r.fee = before - r.discount;
-    r.vat = settings.vat ? (r.fee + disb.total) * F.vatRate : 0;
-    r.total = r.fee + disb.total + r.vat;
-    r.empty = !timeOnly && value < 1 && time.total === 0;
-    return r;
-  }
-
-  // ---------- navigation ----------
+  // ===================================================================================
+  // Navigation
+  // ===================================================================================
   const screens = ["doorScreen", "homeScreen", "editScreen", "proposalScreen", "invoiceScreen", "settingsScreen"];
   let stack = ["doorScreen"];
   function show(id, title, push = true) {
@@ -560,19 +521,21 @@
   $("backBtn").onclick = back;
   $("settingsBtn").onclick = () => { fillSettings(); show("settingsScreen", "Settings"); };
 
-  // ---------- front door ----------
+  // ===================================================================================
+  // Front door
+  // ===================================================================================
   const homeTitle = () => (DISCIPLINES.find((d) => d.id === disc) || {}).name + " fees";
   function renderDoor() {
     const g = $("doorGrid"); g.innerHTML = "";
     const logo = $("doorLogo"); logo.style.display = settings.logo ? "" : "none"; if (settings.logo) logo.src = settings.logo;
     $("doorTitle").textContent = settings.firm || "Professional Fees";
     DISCIPLINES.forEach((d) => {
-      const m = MODULES[d.id];
+      const m = moduleForDiscipline(d.id);
       const b = document.createElement("button");
       b.type = "button"; b.className = "tile" + (m ? "" : " soon");
       b.innerHTML = `<div class="ic">${d.ic}</div><b></b><small></small>${m ? "" : `<span class="soonTag">Coming soon</span>`}`;
       b.querySelector("b").textContent = d.name;
-      b.querySelector("small").textContent = m ? `${d.council} · ${m.notice}` : d.council;
+      b.querySelector("small").textContent = d.id === "multi" ? d.council : (m ? `${d.council} · ${m.notice}` : d.council);
       b.onclick = () => {
         if (!m) { toast(d.name + ": coming soon"); return; }
         disc = d.id; F = m;
@@ -582,7 +545,9 @@
     });
   }
 
-  // ---------- home ----------
+  // ===================================================================================
+  // Home list
+  // ===================================================================================
   function renderHome() {
     const ul = $("plist"); ul.innerHTML = "";
     projects.forEach(migrate);
@@ -594,132 +559,387 @@
       li.innerHTML = `<div class="t"><b></b><span></span></div><div class="fee"></div>`;
       li.querySelector("b").textContent = p.name || "Untitled";
       const inv = invoiceInfo(p, c);
-      li.querySelector("span").innerHTML = esc((p.client ? p.client + " · " : "") + new Date(p.updated).toLocaleDateString("en-ZA")) + (inv.outstanding > 0.005 ? ` · <span class="due">${fmt0(inv.outstanding)} outstanding</span>` : "");
+      li.querySelector("span").innerHTML = esc((p.client ? p.client + " · " : "") + new Date(p.updated).toLocaleDateString("en-ZA") + (isMulti(p) && p.lines.length > 1 ? ` · ${p.lines.length} disciplines` : "")) + (inv.outstanding > 0.005 ? ` · <span class="due">${fmt0(inv.outstanding)} outstanding</span>` : "");
       li.querySelector(".fee").textContent = fmt0(c.fee);
       li.onclick = () => { current = p; fillEdit(); show("editScreen", p.name || "Proposal"); };
       ul.appendChild(li);
     });
-    $("feeSource").textContent = `Fees from ${F.council}, ${F.notice}. Guideline only, not prescribed.`;
+    $("feeSource").textContent = disc === "multi" ? "Architecture, quantity surveying and engineering disciplines collated into one proposal, each from its own council's gazetted guideline. Guidelines only, not prescribed." : `Fees from ${F.council}, ${F.notice}. Guideline only, not prescribed.`;
   }
   $("newBtn").onclick = () => {
     current = {
-      id: Date.now().toString(36), discipline: disc, name: "", client: "", email: "", mode: "single", basis: "area", area: "", rate: settings.rate || "", value: "",
-      sel: defaultSel(), stageKey: "", discount: "", notes: "",
-      repeat: { pct: F.repeatedBuildings.stages14Percent },
-      disb: [], blds: [], time: { mode: "none", lines: [] }, invoices: [],
-      stages: [],
+      id: newId(), discipline: disc, name: "", client: "", email: "",
+      mode: "single", basis: "area", area: "", rate: settings.rate || "", value: "", blds: [],
+      chargeMode: "none",
+      lines: [newLine("table", F.id)],
+      disb: [], discount: "", notes: "", invoices: [],
       created: Date.now(), updated: Date.now()
     };
+    if (disc === "multi") { current.lines = []; current.activeTab = "arch"; ensureMultiLines(); }
     fillEdit(); show("editScreen", "New proposal");
     setTimeout(() => $("pName").focus(), 50);
   };
 
-  // ---------- edit ----------
+  // ===================================================================================
+  // Fee lines: the parts a proposal is made of
+  //   table   : a council's fee table (one discipline), optionally on its own value of works
+  //   percent : a negotiated percentage of the value of works
+  //   lump    : a negotiated lump sum
+  //   hours   : time-based, at a council's guideline rates or the firm's own
+  // ===================================================================================
+  const TYPE_LABEL = { table: "Fee table", percent: "Percentage of value", lump: "Negotiated lump sum", hours: "Hourly work" };
+  const defaultSel = (M) => { const s = {}; (M.selectors || []).forEach((x) => { s[x.id] = Array.isArray(x.default) ? x.default.slice() : x.default; }); return s; };
+  function newLine(type, discipline) {
+    const M = MODULES[discipline] || F;
+    const l = { id: newId(), type, discipline: M ? M.id : null, label: "", valueMode: "project", ownBasis: "area", ownArea: "", ownRate: settings.rate || "", ownValue: "", open: true };
+    if (type === "table") { l.sel = defaultSel(M); l.stageKey = ""; l.stages = []; l.repeatPct = M.repeatedBuildings ? M.repeatedBuildings.stages14Percent : 35; }
+    if (type === "percent") { l.percent = ""; l.desc = ""; }
+    if (type === "lump") { l.amount = ""; l.desc = ""; }
+    if (type === "hours") { l.hours = [newHourRow(M)]; }
+    return l;
+  }
+  const newHourRow = (M) => { const r = ((M && M.hourlyRates) || [])[0]; return r ? { role: r.role, rate: r.rate, hours: "", desc: "" } : { role: "Other", rate: "", hours: "", desc: "" }; };
+  const lineModule = (l) => MODULES[l.discipline] || F;
+  function lineTitle(l) {
+    if (l.label) return l.label;
+    const M = lineModule(l);
+    if (l.key) { const d = MULTI_DISC.find((x) => x.key === l.key); if (d) return d.name; }
+    if (l.type === "table") return M.discipline;
+    if (l.type === "percent") return "Negotiated percentage";
+    if (l.type === "lump") return "Negotiated lump sum";
+    return "Hourly work" + (M ? " · " + M.discipline : "");
+  }
+  function lineSubtitle(l, c) {
+    const r = c && c.lines.find((x) => x.id === l.id);
+    if (!r) return TYPE_LABEL[l.type];
+    if (r.negotiated) return "Negotiated fee";
+    if (l.type === "table") return (r.ownValue ? "On its own value " + fmt0(r.value) : "On the project's value of works") + (r.stagesPct !== undefined ? ` · ${pct(r.stagesPct)} of stages` : "");
+    if (l.type === "percent") return `${pct(num(l.percent) || 0)} of ${fmt0(r.value)}`;
+    if (l.type === "lump") return l.desc || "Agreed fee";
+    return `${r.hoursTotal || 0} hours`;
+  }
+  // A bracket row is [lowest value, highest value or null, primary fee, secondary %, subtract base].
+  function bracketFor(brackets, value) {
+    for (const row of brackets) { if (value >= row[0] && (row[1] === null || value <= row[1])) return row; }
+    return null;
+  }
+  const bracketBase = (br) => br[4] !== undefined ? br[4] : br[0];
+  const repeatStageIds = (M) => (M.repeatedBuildings && M.repeatedBuildings.stageIds) || ["1", "2", "3", "4.1", "4.2"];
+  const repeatStagesLabel = (M) => { const ids = repeatStageIds(M); return ids.length >= 6 ? "All stages" : `Stages ${ids[0]} to ${ids[ids.length - 1]}`; };
+  function resolveLine(l) { const M = lineModule(l); if (!l.sel) l.sel = defaultSel(M); return M.resolve(l.sel); }
+  // When the chosen table changes its stage split, replace the stages; otherwise keep the user's edits.
+  function syncStages(l) {
+    const r = resolveLine(l);
+    if (l.stageKey !== r.stageKey || !l.stages || !l.stages.length) {
+      l.stages = r.stages.map((s) => ({ id: s.id, name: s.name, percent: s.percent, on: s.on !== false }));
+      l.stageKey = r.stageKey;
+    }
+    return r;
+  }
+
+  // ===================================================================================
+  // Value of works: a single project or a development scheme of several buildings
+  // ===================================================================================
+  function repeatFactor(units, protos, pctRepeat) { return (protos + (units - protos) * pctRepeat / 100) / units; }
+  function components(p, pctRepeat) {
+    if (p.mode === "scheme") {
+      return (p.blds || []).map((b) => {
+        const qty = Math.max(1, Math.floor(num(b.qty) || 1));
+        const byArea = (b.basis || "area") === "area";
+        const unit = byArea ? (num(b.area) || 0) * (num(b.rate) || 0) : (num(b.value) || 0);
+        const protos = Math.min(qty, Math.max(1, Math.floor(num(b.protos) || 1)));
+        const rep = !!b.rep && qty > protos;
+        return { name: b.name || (b.rep ? "Unit type" : "Building"), byArea, area: num(b.area) || 0, rate: num(b.rate) || 0, unit, qty, value: unit * qty, rep, protos, repeats: rep ? qty - protos : 0, factor: rep ? repeatFactor(qty, protos, pctRepeat) : 1, isUnit: !!b.rep };
+      }).filter((c) => c.value > 0);
+    }
+    const value = (p.basis || "area") === "area" ? (num(p.area) || 0) * (num(p.rate) || 0) : (num(p.value) || 0);
+    if (value < 1) return [];
+    return [{ name: p.name || "Project", value, qty: 1, rep: false, protos: 1, repeats: 0, factor: 1 }];
+  }
+  function repeatInfo(comps, pctRepeat) {
+    const reps = comps.filter((c) => c.rep);
+    if (!reps.length) return null;
+    const total = comps.reduce((s, c) => s + c.value, 0);
+    const factor = comps.reduce((s, c) => s + c.value * c.factor, 0) / total;
+    return { pct: pctRepeat, factor, groups: reps, units: reps.reduce((s, c) => s + c.qty, 0), protos: reps.reduce((s, c) => s + c.protos, 0), repeats: reps.reduce((s, c) => s + c.repeats, 0), bespoke: comps.filter((c) => !c.rep) };
+  }
+  const lineOwnValue = (l) => (l.ownBasis || "area") === "area" ? (num(l.ownArea) || 0) * (num(l.ownRate) || 0) : (num(l.ownValue) || 0);
+
+  // ===================================================================================
+  // The calculation
+  // ===================================================================================
+  function disbInfo(p) {
+    const items = (p.disb || []).map((d) => {
+      const cost = num(d.amount) || 0;
+      const attendPct = num(d.attend);
+      const att = cost * (isNaN(attendPct) ? 0 : attendPct) / 100;
+      return { cat: d.cat || "Disbursement", desc: d.desc || "", cost, attendPct: isNaN(attendPct) ? 0 : attendPct, att, line: cost + att };
+    }).filter((d) => d.cost > 0);
+    return { items, total: items.reduce((s, d) => s + d.line, 0) };
+  }
+  function calcLine(l, p, projectComps, projectValue) {
+    const M = lineModule(l);
+    const out = { id: l.id, type: l.type, title: lineTitle(l), M, fee: 0, value: 0 };
+    if (l.type === "lump") { out.fee = num(l.amount) || 0; out.desc = l.desc || ""; return out; }
+    if (l.type === "hours") {
+      out.items = (l.hours || []).map((h) => { const rate = num(h.rate) || 0, hours = num(h.hours) || 0; return { role: h.role || "Hourly work", desc: h.desc || "", rate, hours, amount: rate * hours }; }).filter((h) => h.amount > 0);
+      out.hoursTotal = out.items.reduce((s, h) => s + h.hours, 0);
+      out.fee = out.items.reduce((s, h) => s + h.amount, 0);
+      return out;
+    }
+    // table and percent lines work on a value of works: the project's, or the line's own
+    const own = l.valueMode === "own";
+    out.ownValue = own;
+    out.ownLabel = (MULTI_DISC.find((x) => x.key === l.key) || {}).own || "";
+    // A negotiated fee typed on a discipline tab replaces the table for that discipline.
+    if (l.type === "table" && num(l.override) > 0) { out.negotiated = true; out.fee = num(l.override); out.desc = l.overrideDesc || ""; return out; }
+    out.value = own ? lineOwnValue(l) : projectValue;
+    if (l.type === "percent") { out.percent = num(l.percent) || 0; out.fee = out.value * out.percent / 100; out.desc = l.desc || ""; return out; }
+    const res = syncStages(l);
+    out.summary = res.summary; out.factorLabel = res.factorLabel || ""; out.res = res;
+    if (out.value < 1) return out;
+    const br = bracketFor(res.brackets, out.value);
+    if (!br) { out.belowTable = true; return out; }
+    out.bracket = br; out.primary = br[2]; out.secondary = (out.value - bracketBase(br)) * br[3] / 100;
+    out.basic = out.primary + out.secondary;
+    out.full = out.basic * (res.factor || 1);
+    const pctRepeat = num(l.repeatPct); const repPct = isNaN(pctRepeat) || l.repeatPct === "" ? (M.repeatedBuildings ? M.repeatedBuildings.stages14Percent : 35) : Math.min(100, Math.max(0, pctRepeat));
+    const comps = own ? [{ value: out.value, rep: false, factor: 1 }] : components(p, repPct).map((c) => Object.assign({}, c, { factor: c.rep ? repeatFactor(c.qty, c.protos, repPct) : 1 }));
+    const repeat = own ? null : repeatInfo(comps, repPct);
+    const repIds = repeatStageIds(M);
+    let stagesPct = 0, stageFee = 0; const stageLines = [];
+    l.stages.forEach((st) => {
+      if (!st.on) return;
+      const pc = num(st.percent) || 0;
+      const f = repeat && repIds.includes(String(st.id)) ? repeat.factor : 1;
+      const amt = out.full * pc / 100 * f;
+      stagesPct += pc; stageFee += amt;
+      stageLines.push({ id: st.id, name: st.name, pc, amt, adjusted: f !== 1 });
+    });
+    const allOn = l.stages.every((st) => st.on || !(num(st.percent) > 0));
+    if (M.partialServicePoints && stageLines.length && !allOn) {
+      const pc = M.partialServicePoints, amt = out.full * pc / 100;
+      stagesPct += pc; stageFee += amt;
+      stageLines.push({ id: "+", name: "Partial service allowance", pc, amt, adjusted: false, partial: true });
+    }
+    out.stagesPct = stagesPct; out.stageLines = stageLines; out.repeat = repeat; out.fee = stageFee;
+    return out;
+  }
+  function calc(p) {
+    const projectComps = components(p, 35);
+    const value = projectComps.reduce((s, c) => s + c.value, 0);
+    const lines = (p.lines || []).filter((l) => l.on !== false).map((l) => calcLine(l, p, projectComps, value));
+    const disb = disbInfo(p);
+    const before = lines.reduce((s, l) => s + l.fee, 0);
+    const discount = before * (num(p.discount) || 0) / 100;
+    const fee = before - discount;
+    const vat = settings.vat ? (fee + disb.total) * VAT_RATE : 0;
+    return { value, comps: projectComps, lines, before, discount, fee, disb, vat, total: fee + disb.total + vat, empty: before === 0 && value < 1 };
+  }
+
+  // ===================================================================================
+  // Edit screen
+  // ===================================================================================
+  const MODE_HINT = {
+    single: "One project, priced as a whole. A house with its outbuildings, garages or staff quarters is a single project.",
+    scheme: "Several buildings on one site under one contract: an estate, a complex, a sectional title scheme. Each building type is a row."
+  };
   function fillEdit() {
     const p = current;
     migrate(p);
-    renderBlds();
     $("deleteConfirm").style.display = "none"; $("deleteBtn").style.display = "";
     $("pName").value = p.name; $("pClient").value = p.client; $("pEmail").value = p.email || "";
-    $("rPct").value = p.repeat.pct; $("rPct").placeholder = F.repeatedBuildings.stages14Percent;
-    $("rPctLabel").textContent = `${repeatStagesLabel()} on each repeat (% of the fee for those stages)`;
-    $("repeatNote").textContent = F.repeatedBuildings.note;
-    $("disbNote").textContent = F.disbursementNote || "Reimbursed at cost.";
-    renderDisb();
-    $("pArea").value = p.area; $("pRate").value = p.rate; $("pValue").value = p.value;
+    $("pArea").value = p.area; $("pRate").value = fmtIn(p.rate); $("pValue").value = fmtIn(p.value);
     $("pDiscount").value = p.discount; $("pNotes").value = p.notes || "";
-    renderSelectors();
-    syncStages();
-    setMode(p.mode, false);
-    $("cowNote").textContent = F.costOfWorksNote;
-    setBasis(p.basis || "area", false);
-    $("timeNote").textContent = F.hourlyNote || "";
-    renderTime();
-    setTimeMode(p.time.mode, false);
+    renderBlds(); setBasis(p.basis || "area", false); setMode(p.mode, false);
+    renderDisb();
+    $("disbNote").textContent = (F.disbursementNote || "Reimbursed at cost.");
+    $("cowNote").textContent = F.costOfWorksNote || "The value of works excludes VAT.";
+    const multi = isMulti(p);
+    $("linesCard").style.display = multi ? "" : "none";
+    $("chargeCard").style.display = multi ? "none" : "";
+    if (multi) { ensureMultiLines(); renderMulti(); ["basisCard", "stagesCard", "repeatCard", "timeCard"].forEach((id) => { $(id).style.display = "none"; }); }
+    else { ensureClassicLines(); renderClassic(); setTimeMode(p.chargeMode || "none", false); }
     recalc();
+  }
+
+  // ---------- the Multi-disciplinary tile: one tab per discipline, each the same section as its own tile ----------
+  function ensureMultiLines() {
+    const p = current;
+    MULTI_DISC.forEach((d) => {
+      if (!MODULES[d.module]) return;
+      let l = p.lines.find((x) => x.key === d.key);
+      if (!l) {
+        l = newLine("table", d.module); l.key = d.key; l.on = false; l.open = false;
+        if (d.table) { l.sel.table = d.table; l.valueMode = "own"; l.ownBasis = "value"; }
+        p.lines.push(l);
+      }
+    });
+    p.lines = p.lines.filter((l) => l.key);   // a multi proposal holds only these discipline lines
+    if (!p.activeTab) p.activeTab = "arch";
+  }
+  function renderMulti() {
+    const p = current, c = calc(p);
+    const tabs = $("discTabs"); tabs.innerHTML = "";
+    MULTI_DISC.forEach((d) => {
+      const l = p.lines.find((x) => x.key === d.key); if (!l) return;
+      const b = document.createElement("button"); b.type = "button";
+      b.className = (l.on ? "inc" : "") + (p.activeTab === d.key ? " active" : "");
+      b.textContent = (l.on ? "✓ " : "") + d.name;
+      b.onclick = () => { p.activeTab = d.key; renderMulti(); };
+      tabs.appendChild(b);
+    });
+    const inc = p.lines.filter((l) => l.on);
+    $("discSummary").textContent = inc.length ? "Included: " + inc.map((l) => lineTitle(l)).join(", ") + ". Tap a discipline to include it and set it up." : "Tap a discipline, then tick Include. Each one is worked out exactly as on its own tile.";
+    const panel = $("discPanel"); panel.innerHTML = "";
+    const d = MULTI_DISC.find((x) => x.key === p.activeTab) || MULTI_DISC[0];
+    const l = p.lines.find((x) => x.key === d.key); if (!l) return;
+    const M = MODULES[d.module];
+    const box = document.createElement("div"); box.className = "panel"; panel.appendChild(box);
+    const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+    const incLab = el("label", "inc"); incLab.style.margin = "0";
+    const cb = el("input"); cb.type = "checkbox"; cb.checked = !!l.on;
+    cb.onchange = () => { l.on = cb.checked; renderMulti(); recalc(); };
+    incLab.appendChild(cb); incLab.appendChild(document.createTextNode(` Include ${d.name}`));
+    box.appendChild(incLab);
+    box.appendChild(el("p", "hint", esc(`${M.council}, ${M.notice}.`)));
+    if (!l.on) return;
+    box.appendChild(el("h3", "", "Negotiated fee instead of the table (optional)"));
+    const ov = el("input"); ov.type = "text"; ov.className = "money"; ov.inputMode = "decimal"; ov.placeholder = "Agreed fee for this discipline (R)"; ov.value = fmtIn(l.override);
+    ov.oninput = () => { l.override = ov.value; recalc(); paintTabsOnly(); }; box.appendChild(ov);
+    box.appendChild(el("p", "hint", "Leave empty to use the fee table below. Use it for a lump sum, or where the works fall below the table."));
+    if (d.own) {
+      box.appendChild(el("h3", "", `Value of the ${d.own}`));
+      const v = el("input"); v.type = "text"; v.className = "money"; v.inputMode = "decimal"; v.placeholder = `Cost of the ${d.own} (R)`; v.value = fmtIn(l.ownValue);
+      v.oninput = () => { l.ownValue = v.value; recalc(); paintTabsOnly(); }; box.appendChild(v);
+      box.appendChild(el("p", "hint", `The ECSA fee is worked out on the cost of the ${d.own}, not on the whole building. Enter that portion of the value of works.`));
+    } else {
+      box.appendChild(el("p", "hint", "Worked out on the project's value of works above."));
+    }
+    box.appendChild(el("h3", "", "Fee basis"));
+    renderSelectors(l, M, box);
+    box.appendChild(el("p", "hint", esc(M.costOfWorksNote || "")));
+    box.appendChild(el("h3", "", "Work stages included"));
+    syncStages(l);
+    const ul = el("ul", "stages"); ul.dataset.role = "stages"; box.appendChild(ul); renderStages(l, ul);
+    const sumHint = el("p", "hint"); box.appendChild(sumHint);
+    const paintSum = () => { const s = l.stages.reduce((a, st) => a + (num(st.percent) || 0), 0); const on = l.stages.reduce((a, st) => a + (st.on ? num(st.percent) || 0 : 0), 0); sumHint.textContent = `Stage percentages total ${pct(s)} · ${pct(on)} selected`; sumHint.style.color = Math.abs(s - 100) > 0.01 ? "var(--warn)" : ""; };
+    paintSum(); ul.addEventListener("input", paintSum); ul.addEventListener("change", paintSum);
+    if (!d.own && p.mode === "scheme") {
+      box.appendChild(el("h3", "", "Repeated designs"));
+      box.appendChild(el("label", "", esc(`${repeatStagesLabel(M)} on each repeat (% of the fee for those stages)`)));
+      const rp = el("input"); rp.type = "number"; rp.inputMode = "decimal"; rp.min = 0; rp.max = 100; rp.placeholder = M.repeatedBuildings ? M.repeatedBuildings.stages14Percent : 35; rp.value = l.repeatPct;
+      rp.oninput = () => { l.repeatPct = rp.value; recalc(); }; box.appendChild(rp);
+      box.appendChild(el("p", "hint", esc((M.repeatedBuildings && M.repeatedBuildings.note) || "")));
+    }
+    const r = c.lines.find((x) => x.id === l.id);
+    const feeLine = el("p", "hint"); feeLine.style.cssText = "font-weight:600;color:var(--ink);margin-top:12px"; feeLine.id = "discFee";
+    feeLine.textContent = r ? `${d.name}: ${fmt0(r.fee)}` : ""; box.appendChild(feeLine);
+  }
+  function paintTabsOnly() { const p = current, c = calc(p); const d = MULTI_DISC.find((x) => x.key === p.activeTab); const l = d && p.lines.find((x) => x.key === d.key); const r = l && c.lines.find((x) => x.id === l.id); const f = $("discFee"); if (f && d) f.textContent = r ? `${d.name}: ${fmt0(r.fee)}` : ""; }
+
+  // ---------- the single-discipline screens: one fee-table line and, if wanted, one hours line ----------
+  const tableLine = () => current.lines.find((l) => l.type === "table");
+  const hoursLine = () => current.lines.find((l) => l.type === "hours");
+  const lumpLine = () => current.lines.find((l) => l.type === "lump");
+  function ensureClassicLines() {
+    const p = current, mode = p.chargeMode || "none";
+    if (mode === "lump") {
+      if (!lumpLine()) p.lines.push(newLine("lump", F.id));
+      p.lines = [lumpLine()];
+      return;
+    }
+    if (mode !== "only" && !tableLine()) p.lines.unshift(newLine("table", F.id));
+    if (mode === "only") p.lines = p.lines.filter((l) => l.type !== "table");
+    if (mode !== "none" && !hoursLine()) p.lines.push(newLine("hours", F.id));
+    if (mode === "none") p.lines = p.lines.filter((l) => l.type !== "hours");
+    // A single-discipline proposal has at most one table line and one hours line.
+    const t = p.lines.find((l) => l.type === "table"), h = p.lines.find((l) => l.type === "hours");
+    p.lines = [t, h].filter(Boolean);
+  }
+  function renderClassic() {
+    const t = tableLine(), h = hoursLine(), lp = lumpLine(), M = F;
+    if (lp) {
+      $("lumpAmount").value = fmtIn(lp.amount); $("lumpDesc").value = lp.desc || "";
+      $("lumpAmount").oninput = () => { lp.amount = $("lumpAmount").value; recalc(); };
+      $("lumpDesc").oninput = () => { lp.desc = $("lumpDesc").value; recalc(); };
+    }
+    if (t) {
+      $("selectors").innerHTML = ""; renderSelectors(t, M, $("selectors"));
+      syncStages(t); $("complexityHint").textContent = "";
+      renderStages(t, $("stageList"));
+      $("rPct").value = t.repeatPct; $("rPct").placeholder = M.repeatedBuildings ? M.repeatedBuildings.stages14Percent : 35;
+      $("rPctLabel").textContent = `${repeatStagesLabel(M)} on each repeat (% of the fee for those stages)`;
+      $("repeatNote").textContent = (M.repeatedBuildings && M.repeatedBuildings.note) || "";
+      $("rPct").oninput = () => { t.repeatPct = $("rPct").value; recalc(); };
+    }
+    if (h) renderHourRows(h, $("timeList"), M);
+    $("timeNote").textContent = M.hourlyNote || "";
   }
   const TIME_HINT = {
     none: "The fee follows the value of works and the stages you include.",
-    add: "The value-based fee, plus hours for additional services (gazette clause 18: additional services are time-based unless agreed otherwise).",
-    only: "The whole job is charged on time. Value of works, complexity and stages do not apply."
+    add: "The value-based fee, plus hours for additional services.",
+    only: "The whole job is charged on time. Value of works and stages do not apply.",
+    lump: "A negotiated once-off fee. Value of works, stages and hours do not apply."
   };
   function setTimeMode(m, re = true) {
-    current.time.mode = m;
+    current.chargeMode = m;
+    ensureClassicLines();
     $("timeMode").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.t === m));
     $("timeModeHint").textContent = TIME_HINT[m] || "";
-    const costBased = m !== "only";
-    ["valueCard", "complexityCard", "stagesCard"].forEach((id) => { $(id).style.display = costBased ? "" : "none"; });
+    const costBased = m !== "only" && m !== "lump";
+    ["valueCard", "basisCard", "stagesCard"].forEach((id) => { $(id).style.display = costBased ? "" : "none"; });
     $("repeatCard").style.display = costBased && current.mode === "scheme" ? "" : "none";
-    $("timeCard").style.display = m === "none" ? "none" : "";
-    if (m !== "none" && current.time.lines.length === 0) { current.time.lines.push(newTimeLine()); renderTime(); }
-    if (re) recalc();
+    $("timeCard").style.display = m === "add" || m === "only" ? "" : "none";
+    $("lumpCard").style.display = m === "lump" ? "" : "none";
+    if (re) { renderClassic(); recalc(); }
   }
   $("timeMode").onclick = (e) => { const b = e.target.closest("button"); if (b) setTimeMode(b.dataset.t); };
-  const newTimeLine = () => { const r = (F.hourlyRates || [])[0]; return r ? { role: r.role, rate: r.rate, hours: "", desc: "" } : { role: "Other", rate: "", hours: "", desc: "" }; };
-  function renderTime() {
-    const ul = $("timeList"); ul.innerHTML = "";
-    const opts = (F.hourlyRates || []).map((r) => `<option value="${esc(r.role)}">${esc(r.role)} · R${r.rate}/h</option>`).join("") + `<option value="Other">Other (own rate)</option>`;
-    current.time.lines.forEach((l, i) => {
-      const li = document.createElement("li");
-      li.innerHTML = `<select class="role">${opts}</select>
-        <div class="row"><input type="number" class="rate" inputmode="decimal" placeholder="Rate R/hour"><input type="number" class="hours" inputmode="decimal" placeholder="Hours"></div>
-        <div class="row"><input type="text" class="desc" placeholder="What the hours are for (optional)"></div>
-        <div class="row" style="align-items:center;justify-content:space-between"><small class="val"></small><button class="rm" type="button">Remove</button></div>`;
-      const q = (s) => li.querySelector(s);
-      const role = q(".role"), rate = q(".rate"), hours = q(".hours"), desc = q(".desc"), val = q(".val");
-      role.value = l.role; if (role.value !== l.role) role.value = "Other";
-      rate.value = l.rate; hours.value = l.hours; desc.value = l.desc || "";
-      const paint = () => { const a = (Number(l.rate) || 0) * (Number(l.hours) || 0); val.textContent = a ? `${l.hours} h × ${fmt0(Number(l.rate))} = ${fmt0(a)}` : ""; };
-      role.onchange = () => { l.role = role.value; const g = F.hourlyRates.find((r) => r.role === role.value); if (g) { l.rate = g.rate; rate.value = g.rate; } paint(); recalc(); };
-      rate.oninput = () => { l.rate = rate.value; paint(); recalc(); };
-      hours.oninput = () => { l.hours = hours.value; paint(); recalc(); };
-      desc.oninput = () => { l.desc = desc.value; recalc(); };
-      q(".rm").onclick = () => { current.time.lines.splice(i, 1); renderTime(); recalc(); };
-      ul.appendChild(li); paint();
-    });
-  }
-  $("addTimeBtn").onclick = () => {
-    current.time.lines.push(newTimeLine()); renderTime();
-    const last = $("timeList").lastElementChild; if (last) last.querySelector(".hours").focus();
-  };
+  $("addTimeBtn").onclick = () => { const h = hoursLine(); if (!h) return; h.hours.push(newHourRow(F)); renderHourRows(h, $("timeList"), F); recalc(); const last = $("timeList").lastElementChild; if (last) last.querySelector(".hours").focus(); };
   // Proposals saved by earlier versions used other field names; bring them up to date.
   function migrate(p) {
-    if (!p.discipline) p.discipline = "sacap";   // everything before the front door was architecture
-    if (!p.sel) { p.sel = { complexity: p.complexity || "medium" }; p.stageKey = p.stages && p.stages.length ? "sacap" : ""; }
-    if (!p.stages) p.stages = [];
-    if (!p.time) p.time = { mode: "none", lines: [] };
-    if (!p.invoices) p.invoices = [];
+    if (!p.discipline) p.discipline = "sacap";
     if (!p.disb) p.disb = [];
     if (!p.blds) p.blds = [];
-    if (!p.repeat) p.repeat = {};
-    const mod = MODULES[p.discipline] || MODULES.sacap;
-    if (p.repeat.pct === undefined) p.repeat.pct = mod && mod.repeatedBuildings ? mod.repeatedBuildings.stages14Percent : 35;
+    if (!p.invoices) p.invoices = [];
     if (p.mode === "area") { p.mode = "single"; p.basis = "area"; }
     if (p.mode === "direct") { p.mode = "single"; p.basis = "value"; }
     if (p.mode === "multi") p.mode = "scheme";
     if (!p.mode) p.mode = "single";
     if (!p.basis) p.basis = "area";
-    // An old single project with "repeated units" switched on becomes a scheme with one repeated row.
-    if (p.mode === "single" && p.repeat.on && Number(p.repeat.units) > 1) {
+    if (p.mode === "single" && p.repeat && p.repeat.on && num(p.repeat.units) > 1) {
       p.mode = "scheme";
       p.blds = [{ name: p.name || "Unit", basis: p.basis, area: p.area, rate: p.rate, value: p.value, qty: p.repeat.units, rep: true, protos: p.repeat.prototypes || 1 }];
     }
-    delete p.repeat.on; delete p.repeat.units; delete p.repeat.prototypes;
-    p.blds.forEach((b) => {
-      if (!b.basis) b.basis = "area"; if (b.value === undefined) b.value = "";
-      // A row with a quantity above 1 is a repeated unit type by definition.
-      if (!b.rep && Number(b.qty) > 1) b.rep = true;
-      if (!b.rep) b.qty = 1;
-    });
+    p.blds.forEach((b) => { if (!b.basis) b.basis = "area"; if (b.value === undefined) b.value = ""; if (!b.rep && num(b.qty) > 1) b.rep = true; if (!b.rep) b.qty = 1; });
+    // Single-discipline proposals (before fee lines) become one or two lines.
+    if (!p.lines) {
+      p.lines = [];
+      const M = MODULES[p.discipline] || F;
+      const time = p.time || { mode: "none", lines: [] };
+      if (time.mode !== "only") {
+        const l = newLine("table", p.discipline);
+        l.sel = p.sel || (p.complexity ? { complexity: p.complexity } : defaultSel(M));
+        l.stages = p.stages && p.stages.length ? p.stages : []; l.stageKey = l.stages.length ? (p.stageKey || "sacap") : "";
+        l.repeatPct = p.repeat && p.repeat.pct !== undefined ? p.repeat.pct : l.repeatPct;
+        l.open = false;
+        p.lines.push(l);
+      }
+      if (time.mode !== "none" && (time.lines || []).length) {
+        const h = newLine("hours", p.discipline); h.hours = time.lines; h.open = false; p.lines.push(h);
+      }
+      if (!p.lines.length) p.lines.push(newLine("table", p.discipline));
+      delete p.time; delete p.sel; delete p.stages; delete p.stageKey; delete p.complexity; delete p.repeat;
+    }
+    p.lines.forEach((l) => { if (!l.id) l.id = newId(); if (!MODULES[l.discipline]) l.discipline = (moduleForDiscipline(p.discipline) || F).id; if (l.open === undefined) l.open = false; });
+    if (!p.chargeMode) { const hasT = p.lines.some((l) => l.type === "table"), hasH = p.lines.some((l) => l.type === "hours"), hasL = p.lines.some((l) => l.type === "lump"); p.chargeMode = hasL && !hasT ? "lump" : hasT && hasH ? "add" : hasH ? "only" : "none"; }
   }
   function readEdit() {
     const p = current;
     p.name = $("pName").value.trim(); p.client = $("pClient").value.trim(); p.email = $("pEmail").value.trim();
     p.area = $("pArea").value; p.rate = $("pRate").value; p.value = $("pValue").value;
     p.discount = $("pDiscount").value; p.notes = $("pNotes").value.trim();
-    p.repeat.pct = $("rPct").value;
   }
-  $("rPct").oninput = recalc;
   function setBasis(b, re = true) {
     current.basis = b;
     $("singleBasis").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.b === b));
@@ -728,46 +948,20 @@
     if (re) recalc();
   }
   $("singleBasis").onclick = (e) => { const b = e.target.closest("button"); if (b) setBasis(b.dataset.b); };
-
-  function renderDisb() {
-    const ul = $("disbList"); ul.innerHTML = "";
-    const opts = `<option value="">Select a category</option>` + F.disbursementCategories.map((c) => `<option>${esc(c)}</option>`).join("");
-    current.disb.forEach((d, i) => {
-      const li = document.createElement("li");
-      li.innerHTML = `<select class="cat">${opts}</select>
-        <div class="row"><input type="text" class="desc" placeholder="Detail (optional)"><input type="number" class="amt" inputmode="decimal" placeholder="Cost R"></div>
-        <div class="row" style="align-items:center"><small>Attendance %</small><input type="number" class="att" inputmode="decimal" min="0" max="100" style="max-width:90px"><button class="rm" type="button">Remove</button></div>`;
-      const sel = li.querySelector(".cat"), desc = li.querySelector(".desc"), amt = li.querySelector(".amt"), att = li.querySelector(".att");
-      sel.value = d.cat || ""; desc.value = d.desc || ""; amt.value = d.amount; att.value = d.attend;
-      sel.onchange = () => { d.cat = sel.value; recalc(); };
-      desc.oninput = () => { d.desc = desc.value; recalc(); };
-      amt.oninput = () => { d.amount = amt.value; recalc(); };
-      att.oninput = () => { d.attend = att.value; recalc(); };
-      li.querySelector(".rm").onclick = () => { current.disb.splice(i, 1); renderDisb(); recalc(); };
-      ul.appendChild(li);
-    });
-  }
-  $("addDisbBtn").onclick = () => {
-    current.disb.push({ cat: "", desc: "", amount: "", attend: F.disbursementAttendancePercent });
-    renderDisb();
-    const last = $("disbList").lastElementChild; if (last) last.querySelector(".cat").focus();
-  };
-  const MODE_HINT = {
-    single: "One project, priced as a whole. A house with its outbuildings, garages or staff quarters is a single project.",
-    scheme: "Several buildings on one site under one contract: an estate, a complex, a sectional title scheme. Each building type is a row."
-  };
   function setMode(m, re = true) {
     current.mode = m;
     $("valueMode").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
     $("modeHint").textContent = MODE_HINT[m] || "";
     $("singleInputs").style.display = m === "single" ? "" : "none";
     $("schemeInputs").style.display = m === "scheme" ? "" : "none";
-    $("repeatCard").style.display = m === "scheme" && current.time.mode !== "only" ? "" : "none";
     if (m === "scheme" && current.blds.length === 0) { current.blds.push(newBld(false), newBld(true)); renderBlds(); }
-    if (re) recalc();
+    if (!isMulti(current)) $("repeatCard").style.display = m === "scheme" && (current.chargeMode || "none") !== "only" ? "" : "none";
+    if (re) { if (isMulti(current)) renderMulti(); recalc(); }
   }
+  $("valueMode").onclick = (e) => { const b = e.target.closest("button"); if (b) setMode(b.dataset.mode); };
+  ["pName", "pClient", "pEmail", "pArea", "pRate", "pValue", "pDiscount", "pNotes"].forEach((id) => { $(id).oninput = recalc; });
+
   const newBld = (rep) => ({ name: "", basis: "area", area: "", rate: settings.rate || "", value: "", qty: rep ? "" : 1, rep: !!rep, protos: 1 });
-  // One row in either list. Primary rows: name, basis, size or value. Repeat rows: name, quantity, size or value of ONE unit.
   function renderBlds() {
     $("primList").innerHTML = ""; $("repList").innerHTML = "";
     let unitNo = 0;
@@ -777,29 +971,26 @@
       li.innerHTML = b.rep
         ? `<div class="row" style="align-items:center"><input type="text" class="nm" placeholder="Unit type ${unitNo}" style="flex:2"><input type="number" class="qty" inputmode="numeric" min="1" placeholder="Quantity" style="flex:1"></div>
            <div class="seg small" style="margin-top:6px"><button type="button" data-b="area">Size × rate per unit</button><button type="button" data-b="value">Value per unit</button></div>
-           <div class="row byArea"><input type="number" class="area" inputmode="decimal" placeholder="Size of one unit m²"><input type="number" class="rate" inputmode="decimal" placeholder="Rate R/m²"></div>
-           <div class="row byValue"><input type="number" class="value" inputmode="decimal" placeholder="Value of one unit R"></div>
+           <div class="row byArea"><input type="number" class="area" inputmode="decimal" placeholder="Size of one unit m²"><input type="text" class="money rate" inputmode="decimal" placeholder="Rate R/m²"></div>
+           <div class="row byValue"><input type="text" class="money value" inputmode="decimal" placeholder="Value of one unit R"></div>
            <div class="row" style="align-items:center;justify-content:space-between"><small class="val"></small><button class="rm" type="button">Remove</button></div>`
         : `<input type="text" class="nm" placeholder="e.g. Clubhouse, Gym, Gatehouse">
            <div class="seg small" style="margin-top:6px"><button type="button" data-b="area">Area × rate</button><button type="button" data-b="value">Value</button></div>
-           <div class="row byArea"><input type="number" class="area" inputmode="decimal" placeholder="Area m²"><input type="number" class="rate" inputmode="decimal" placeholder="Rate R/m²"></div>
-           <div class="row byValue"><input type="number" class="value" inputmode="decimal" placeholder="Value of this building R"></div>
+           <div class="row byArea"><input type="number" class="area" inputmode="decimal" placeholder="Area m²"><input type="text" class="money rate" inputmode="decimal" placeholder="Rate R/m²"></div>
+           <div class="row byValue"><input type="text" class="money value" inputmode="decimal" placeholder="Value of this building R"></div>
            <div class="row" style="align-items:center;justify-content:space-between"><small class="val"></small><button class="rm" type="button">Remove</button></div>`;
       const q = (s) => li.querySelector(s);
       const nm = q(".nm"), area = q(".area"), rate = q(".rate"), value = q(".value"), qty = q(".qty"), val = q(".val"), seg = q(".seg");
-      nm.value = b.name || ""; area.value = b.area; rate.value = b.rate; value.value = b.value || ""; if (qty) qty.value = b.qty;
+      nm.value = b.name || ""; area.value = b.area; rate.value = fmtIn(b.rate); value.value = fmtIn(b.value || ""); if (qty) qty.value = b.qty;
       const paint = () => {
         seg.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.b === b.basis));
         q(".byArea").style.display = b.basis === "area" ? "" : "none";
         q(".byValue").style.display = b.basis === "value" ? "" : "none";
-        const unit = b.basis === "area" ? (Number(b.area) || 0) * (Number(b.rate) || 0) : (Number(b.value) || 0);
-        const n = b.rep ? Math.floor(Number(b.qty) || 0) : 1;
+        const unit = b.basis === "area" ? (num(b.area) || 0) * (num(b.rate) || 0) : (num(b.value) || 0);
+        const n = b.rep ? Math.floor(num(b.qty) || 0) : 1;
         val.textContent = !unit ? "" : b.rep ? (n ? `${fmt0(unit)} per unit × ${n} = ${fmt0(unit * n)}` : `${fmt0(unit)} per unit · enter the quantity`) : fmt0(unit);
       };
-      const upd = () => {
-        b.name = nm.value; b.area = area.value; b.rate = rate.value; b.value = value.value; if (qty) b.qty = qty.value;
-        paint(); recalc();
-      };
+      const upd = () => { b.name = nm.value; b.area = area.value; b.rate = rate.value; b.value = value.value; if (qty) b.qty = qty.value; paint(); recalc(); };
       [nm, area, rate, value, qty].forEach((el) => { if (el) el.oninput = upd; });
       seg.onclick = (e) => { const x = e.target.closest("button"); if (!x) return; b.basis = x.dataset.b; paint(); recalc(); };
       q(".rm").onclick = () => { current.blds.splice(i, 1); renderBlds(); recalc(); };
@@ -808,119 +999,300 @@
     });
   }
   function addBld(rep) {
-    current.blds.push(newBld(rep));
-    renderBlds();
+    current.blds.push(newBld(rep)); renderBlds();
     const last = $(rep ? "repList" : "primList").lastElementChild; if (last) last.querySelector(rep ? ".qty" : ".nm").focus();
   }
   $("addPrimBtn").onclick = () => addBld(false);
   $("addRepBtn").onclick = () => addBld(true);
-  // The Fee basis card: each council module declares its own choices (selectors) and resolves them
-  // into a bracket table, a factor and a stage split.
-  function renderSelectors() {
-    const host = $("selectors"); host.innerHTML = "";
-    const p = current; if (!p.sel) p.sel = defaultSel();
-    F.selectors.forEach((s, idx) => {
-      const opts = typeof s.options === "function" ? s.options(p.sel) : s.options;
-      const wrap = document.createElement("div");
-      const lab = document.createElement("label"); lab.textContent = s.label; if (idx === 0) lab.style.marginTop = "0"; wrap.appendChild(lab);
-      if (s.type === "seg") {
-        const seg = document.createElement("div"); seg.className = "seg" + (opts.length > 3 ? " small" : "");
-        if (!opts.find((o) => o.id === p.sel[s.id])) p.sel[s.id] = s.default;
-        opts.forEach((o) => { const b = document.createElement("button"); b.type = "button"; b.textContent = o.label; b.className = p.sel[s.id] === o.id ? "on" : ""; b.onclick = () => { p.sel[s.id] = o.id; renderSelectors(); syncStages(); recalc(); }; seg.appendChild(b); });
-        wrap.appendChild(seg);
-      } else if (s.type === "select") {
-        const sel = document.createElement("select");
-        opts.forEach((o) => { const op = document.createElement("option"); op.value = o.id; op.textContent = o.label; sel.appendChild(op); });
-        if (!opts.find((o) => o.id === p.sel[s.id])) p.sel[s.id] = opts[0] ? opts[0].id : s.default;
-        sel.value = p.sel[s.id];
-        sel.onchange = () => { p.sel[s.id] = sel.value; renderSelectors(); syncStages(); recalc(); };
-        wrap.appendChild(sel);
-      } else if (s.type === "multi") {
-        const ul = document.createElement("ul"); ul.className = "stages";
-        if (!Array.isArray(p.sel[s.id])) p.sel[s.id] = [];
-        opts.forEach((o) => {
-          const li = document.createElement("li");
-          li.innerHTML = `<input type="checkbox"><div class="nm"><span></span></div>`;
-          li.querySelector("span").textContent = o.label;
-          const cb = li.querySelector("input"); cb.checked = p.sel[s.id].includes(o.id);
-          cb.onchange = () => { const set = new Set(p.sel[s.id]); cb.checked ? set.add(o.id) : set.delete(o.id); p.sel[s.id] = Array.from(set); syncStages(); recalc(); };
-          ul.appendChild(li);
-        });
-        wrap.appendChild(ul);
-      } else if (s.type === "number") {
-        const inp = document.createElement("input"); inp.type = "number"; inp.inputMode = "decimal"; inp.step = s.step || 0.01; if (s.min !== undefined) inp.min = s.min; if (s.max !== undefined) inp.max = s.max;
-        inp.value = p.sel[s.id] === undefined || p.sel[s.id] === "" ? s.default : p.sel[s.id];
-        inp.oninput = () => { p.sel[s.id] = inp.value; recalc(); };
-        wrap.appendChild(inp);
-      }
-      host.appendChild(wrap);
-    });
-    const r = resolveSel(p);
-    $("complexityHint").textContent = r.hint || "";
-  }
-  function renderStages() {
-    const ul = $("stageList"); ul.innerHTML = "";
-    current.stages.forEach((st) => {
-      const li = document.createElement("li");
-      li.innerHTML = `<input type="checkbox"><div class="nm"><span></span><small></small></div><input type="number" inputmode="decimal" min="0" max="100"><span class="pc">%</span>`;
-      const cb = li.querySelector("[type=checkbox]"), num = li.querySelector("[type=number]");
-      cb.checked = st.on; num.value = st.percent;
-      li.querySelector(".nm span").textContent = "Stage " + st.id;
-      li.querySelector("small").textContent = st.name;
-      cb.onchange = () => { st.on = cb.checked; recalc(); };
-      num.oninput = () => { st.percent = num.value; recalc(); };
+
+  // ---------- fee lines ----------
+  // (Generic fee-line list; kept for the engine but not shown on any tile at present.)
+  function renderLines() {
+    const ul = $("lineList"); if (!ul) return; ul.innerHTML = "";
+    const c = calc(current);
+    current.lines.forEach((l, idx) => {
+      const M = lineModule(l);
+      const li = document.createElement("li"); li.className = l.open ? "open" : "";
+      const ic = l.type === "table" ? (DISCIPLINES.find((d) => d.id === l.discipline) || { ic: "F" }).ic : l.type === "percent" ? "%" : l.type === "lump" ? "R" : "h";
+      li.innerHTML = `<div class="head"><div class="ic">${ic}</div><div class="t"><b></b><small></small></div><div class="amt"></div><div class="chev">${l.open ? "▾" : "▸"}</div></div><div class="body"></div>`;
+      const r = c.lines[idx];
+      li.querySelector("b").textContent = lineTitle(l);
+      li.querySelector("small").textContent = lineSubtitle(l, c);
+      li.querySelector(".amt").textContent = fmt0(r ? r.fee : 0);
+      li.querySelector(".head").onclick = () => { l.open = !l.open; renderLines(); };
+      if (l.open) renderLineBody(l, li.querySelector(".body"), M, r);
       ul.appendChild(li);
     });
   }
-  // When the chosen table changes its stage split, replace the stages; otherwise keep the user's edits.
-  function syncStages() {
-    const r = resolveSel(current);
-    if (current.stageKey !== r.stageKey || !current.stages.length) {
-      current.stages = r.stages.map((s) => ({ id: s.id, name: s.name, percent: s.percent, on: s.on !== false }));
-      current.stageKey = r.stageKey;
-    }
-    renderStages();
-  }
-  $("valueMode").onclick = (e) => { const b = e.target.closest("button"); if (b) setMode(b.dataset.mode); };
-  ["pName", "pClient", "pEmail", "pArea", "pRate", "pValue", "pDiscount", "pNotes"].forEach((id) => { $(id).oninput = recalc; });
+  function renderLineBody(l, host, M, r) {
+    host.innerHTML = "";
+    const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+    const label = (t, first) => { const e = el("label", "", esc(t)); if (first) e.style.marginTop = "10px"; return e; };
+    const refreshHead = () => { renderLines(); recalc(); };
 
+    // Label
+    host.appendChild(label("Line name (shown on the proposal)", true));
+    const nm = el("input"); nm.type = "text"; nm.placeholder = lineTitle(l); nm.value = l.label || "";
+    nm.oninput = () => { l.label = nm.value; recalcLineHead(l); };
+    host.appendChild(nm);
+
+    if (l.type === "table" || l.type === "percent") {
+      // Which value of works this line prices
+      host.appendChild(label("Priced on"));
+      const seg = el("div", "seg small");
+      [["project", "The project's value of works"], ["own", "This line's own value"]].forEach(([v, t]) => {
+        const b = el("button", v === (l.valueMode || "project") ? "on" : "", esc(t)); b.type = "button";
+        b.onclick = () => { l.valueMode = v; renderLines(); recalc(); };
+        seg.appendChild(b);
+      });
+      host.appendChild(seg);
+      if (l.valueMode === "own") {
+        const seg2 = el("div", "seg small"); seg2.style.marginTop = "8px";
+        [["area", "Area × rate"], ["value", "Value"]].forEach(([v, t]) => {
+          const b = el("button", v === (l.ownBasis || "area") ? "on" : "", t); b.type = "button";
+          b.onclick = () => { l.ownBasis = v; renderLines(); recalc(); };
+          seg2.appendChild(b);
+        });
+        host.appendChild(seg2);
+        if ((l.ownBasis || "area") === "area") {
+          const row = el("div", "row"); row.style.marginTop = "8px";
+          const a = el("input"); a.type = "number"; a.inputMode = "decimal"; a.placeholder = "Area m²"; a.value = l.ownArea;
+          const rt = el("input"); rt.type = "number"; rt.inputMode = "decimal"; rt.placeholder = "Rate R/m²"; rt.value = l.ownRate;
+          a.oninput = () => { l.ownArea = a.value; recalcLineHead(l); }; rt.oninput = () => { l.ownRate = rt.value; recalcLineHead(l); };
+          row.appendChild(a); row.appendChild(rt); host.appendChild(row);
+        } else {
+          const v = el("input"); v.type = "number"; v.inputMode = "decimal"; v.placeholder = "Value of works for this line R"; v.value = l.ownValue; v.style.marginTop = "8px";
+          v.oninput = () => { l.ownValue = v.value; recalcLineHead(l); }; host.appendChild(v);
+        }
+        host.appendChild(el("p", "hint", "Use this when the line's scope has its own cost, e.g. an electrical subcontract of R8m inside a R100m building."));
+      }
+    }
+
+    if (l.type === "table") {
+      host.appendChild(el("h3", "", "Fee basis · " + esc(M.council)));
+      renderSelectors(l, M, host);
+      host.appendChild(el("p", "hint", esc(M.costOfWorksNote || "")));
+      host.appendChild(el("h3", "", "Work stages included"));
+      const ul = el("ul", "stages"); ul.dataset.role = "stages"; host.appendChild(ul);
+      renderStages(l, ul);
+      const sumHint = el("p", "hint"); host.appendChild(sumHint);
+      const paintSum = () => { const s = l.stages.reduce((a, st) => a + (num(st.percent) || 0), 0); const on = l.stages.reduce((a, st) => a + (st.on ? num(st.percent) || 0 : 0), 0); sumHint.textContent = `Stage percentages total ${pct(s)} · ${pct(on)} selected`; sumHint.style.color = Math.abs(s - 100) > 0.01 ? "var(--warn)" : ""; };
+      paintSum(); ul.addEventListener("input", paintSum); ul.addEventListener("change", paintSum);
+      if (current.mode === "scheme" && l.valueMode !== "own") {
+        host.appendChild(el("h3", "", "Repeated designs"));
+        host.appendChild(label(`${repeatStagesLabel(M)} on each repeat (% of the fee for those stages)`, true));
+        const rp = el("input"); rp.type = "number"; rp.inputMode = "decimal"; rp.min = 0; rp.max = 100; rp.placeholder = M.repeatedBuildings ? M.repeatedBuildings.stages14Percent : 35; rp.value = l.repeatPct;
+        rp.oninput = () => { l.repeatPct = rp.value; recalcLineHead(l); }; host.appendChild(rp);
+        host.appendChild(el("p", "hint", esc((M.repeatedBuildings && M.repeatedBuildings.note) || "")));
+      }
+    }
+
+    if (l.type === "percent") {
+      host.appendChild(label("Percentage of the value of works"));
+      const pcIn = el("input"); pcIn.type = "number"; pcIn.inputMode = "decimal"; pcIn.placeholder = "e.g. 12"; pcIn.min = 0; pcIn.max = 100; pcIn.step = 0.25; pcIn.value = l.percent;
+      pcIn.oninput = () => { l.percent = pcIn.value; recalcLineHead(l); }; host.appendChild(pcIn);
+      host.appendChild(label("What it covers (optional)"));
+      const d = el("input"); d.type = "text"; d.placeholder = "e.g. Interior design, full service"; d.value = l.desc || "";
+      d.oninput = () => { l.desc = d.value; recalcLineHead(l); }; host.appendChild(d);
+    }
+
+    if (l.type === "lump") {
+      host.appendChild(label("Agreed lump sum (R, excl. VAT)"));
+      const am = el("input"); am.type = "number"; am.inputMode = "decimal"; am.placeholder = "e.g. 150000"; am.value = l.amount;
+      am.oninput = () => { l.amount = am.value; recalcLineHead(l); }; host.appendChild(am);
+      host.appendChild(label("What it covers (optional)"));
+      const d = el("input"); d.type = "text"; d.placeholder = "e.g. Interior design: concept, documentation and site visits"; d.value = l.desc || "";
+      d.oninput = () => { l.desc = d.value; recalcLineHead(l); }; host.appendChild(d);
+      host.appendChild(el("p", "hint", "A negotiated fee for the whole service. The proposal shows it as one amount; invoices can be planned as a single line or split by hand."));
+    }
+
+    if (l.type === "hours") {
+      host.appendChild(el("h3", "", "Hours"));
+      const ul = el("ul", "disb"); host.appendChild(ul);
+      renderHourRows(l, ul, M);
+      const addB = el("button", "btn secondary", "+ Add hours"); addB.type = "button";
+      addB.onclick = () => { l.hours.push(newHourRow(M)); renderHourRows(l, ul, M); recalc(); };
+      host.appendChild(addB);
+      host.appendChild(el("p", "hint", esc((M && M.hourlyNote) || "Enter your own rates.")));
+    }
+
+    const rm = el("button", "rmline", "Remove this line"); rm.type = "button";
+    rm.onclick = () => { if (current.lines.length === 1) { toast("A proposal needs at least one line"); return; } current.lines = current.lines.filter((x) => x !== l); renderLines(); recalc(); };
+    host.appendChild(rm);
+  }
+  // Update the line's header (title, subtitle, amount) without re-rendering its open body (keeps focus).
+  function recalcLineHead(l) {
+    recalc();
+    const list = $("lineList"); if (!list) return;
+    const c = calc(current);
+    const idx = current.lines.indexOf(l);
+    const li = list.children[idx]; if (!li) return;
+    li.querySelector("b").textContent = lineTitle(l);
+    li.querySelector("small").textContent = lineSubtitle(l, c);
+    li.querySelector(".amt").textContent = fmt0(c.lines[idx] ? c.lines[idx].fee : 0);
+  }
+  // A council module declares its own choices (selectors) and resolves them into a table, factor and stage split.
+  function renderSelectors(l, M, host) {
+    if (!l.sel) l.sel = defaultSel(M);
+    const box = document.createElement("div"); host.appendChild(box);
+    const paint = () => {
+      box.innerHTML = "";
+      (M.selectors || []).forEach((s) => {
+        const opts = typeof s.options === "function" ? s.options(l.sel) : s.options;
+        const wrap = document.createElement("div");
+        const lab = document.createElement("label"); lab.textContent = s.label; wrap.appendChild(lab);
+        const changed = () => { syncStages(l); const ul = host.querySelector('ul[data-role="stages"]') || (host.id === "selectors" ? $("stageList") : null); if (ul) renderStages(l, ul); paint(); recalcLineHead(l); };
+        if (s.type === "seg") {
+          const seg = document.createElement("div"); seg.className = "seg" + (opts.length > 3 ? " small" : "");
+          if (!opts.find((o) => o.id === l.sel[s.id])) l.sel[s.id] = s.default;
+          opts.forEach((o) => { const b = document.createElement("button"); b.type = "button"; b.textContent = o.label; b.className = l.sel[s.id] === o.id ? "on" : ""; b.onclick = () => { l.sel[s.id] = o.id; changed(); }; seg.appendChild(b); });
+          wrap.appendChild(seg);
+        } else if (s.type === "select") {
+          const sel = document.createElement("select");
+          opts.forEach((o) => { const op = document.createElement("option"); op.value = o.id; op.textContent = o.label; sel.appendChild(op); });
+          if (!opts.find((o) => o.id === l.sel[s.id])) l.sel[s.id] = opts[0] ? opts[0].id : s.default;
+          sel.value = l.sel[s.id];
+          sel.onchange = () => { l.sel[s.id] = sel.value; changed(); };
+          wrap.appendChild(sel);
+        } else if (s.type === "multi") {
+          const ul = document.createElement("ul"); ul.className = "stages";
+          if (!Array.isArray(l.sel[s.id])) l.sel[s.id] = [];
+          opts.forEach((o) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<input type="checkbox"><div class="nm"><span></span></div>`;
+            li.querySelector("span").textContent = o.label;
+            const cb = li.querySelector("input"); cb.checked = l.sel[s.id].includes(o.id);
+            cb.onchange = () => { const set = new Set(l.sel[s.id]); cb.checked ? set.add(o.id) : set.delete(o.id); l.sel[s.id] = Array.from(set); recalcLineHead(l); };
+            ul.appendChild(li);
+          });
+          wrap.appendChild(ul);
+        } else if (s.type === "number") {
+          const inp = document.createElement("input"); inp.type = "number"; inp.inputMode = "decimal"; inp.step = s.step || 0.01; if (s.min !== undefined) inp.min = s.min; if (s.max !== undefined) inp.max = s.max;
+          inp.value = l.sel[s.id] === undefined || l.sel[s.id] === "" ? s.default : l.sel[s.id];
+          inp.oninput = () => { l.sel[s.id] = inp.value; recalcLineHead(l); };
+          wrap.appendChild(inp);
+        }
+        box.appendChild(wrap);
+      });
+      const r = M.resolve(l.sel);
+      if (r.hint) { const h = document.createElement("p"); h.className = "hint"; h.textContent = r.hint; box.appendChild(h); }
+    };
+    paint();
+  }
+  function renderStages(l, ul) {
+    ul.innerHTML = "";
+    l.stages.forEach((st) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<input type="checkbox"><div class="nm"><span></span><small></small></div><input type="number" inputmode="decimal" min="0" max="100"><span class="pc">%</span>`;
+      const cb = li.querySelector("[type=checkbox]"), pcEl = li.querySelector("[type=number]");
+      cb.checked = st.on; pcEl.value = st.percent;
+      li.querySelector(".nm span").textContent = "Stage " + st.id;
+      li.querySelector("small").textContent = st.name;
+      cb.onchange = () => { st.on = cb.checked; recalcLineHead(l); };
+      pcEl.oninput = () => { st.percent = pcEl.value; recalcLineHead(l); };
+      ul.appendChild(li);
+    });
+  }
+  function renderHourRows(l, ul, M) {
+    ul.innerHTML = "";
+    const rates = (M && M.hourlyRates) || [];
+    const opts = rates.map((r) => `<option value="${esc(r.role)}">${esc(r.role)} · R${r.rate}/h</option>`).join("") + `<option value="Other">Other (own rate)</option>`;
+    l.hours.forEach((h, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<select class="role">${opts}</select>
+        <div class="row"><input type="text" class="money rate" inputmode="decimal" placeholder="Rate R/hour"><input type="number" class="hours" inputmode="decimal" placeholder="Hours"></div>
+        <div class="row"><input type="text" class="desc" placeholder="What the hours are for (optional)"></div>
+        <div class="row" style="align-items:center;justify-content:space-between"><small class="val"></small><button class="rm" type="button">Remove</button></div>`;
+      const q = (s) => li.querySelector(s);
+      const role = q(".role"), rate = q(".rate"), hours = q(".hours"), desc = q(".desc"), val = q(".val");
+      role.value = h.role; if (role.value !== h.role) role.value = "Other";
+      rate.value = fmtIn(h.rate); hours.value = h.hours; desc.value = h.desc || "";
+      const paint = () => { const a = (num(h.rate) || 0) * (num(h.hours) || 0); val.textContent = a ? `${h.hours} h × ${fmt0(num(h.rate))} = ${fmt0(a)}` : ""; };
+      role.onchange = () => { h.role = role.value; const g = rates.find((r) => r.role === role.value); if (g) { h.rate = g.rate; rate.value = g.rate; } paint(); recalcLineHead(l); };
+      rate.oninput = () => { h.rate = rate.value; paint(); recalcLineHead(l); };
+      hours.oninput = () => { h.hours = hours.value; paint(); recalcLineHead(l); };
+      desc.oninput = () => { h.desc = desc.value; recalcLineHead(l); };
+      q(".rm").onclick = () => { l.hours.splice(i, 1); renderHourRows(l, ul, M); recalcLineHead(l); };
+      ul.appendChild(li); paint();
+    });
+  }
+
+  // ---------- disbursements ----------
+  function renderDisb() {
+    const ul = $("disbList"); ul.innerHTML = "";
+    const cats = F.disbursementCategories || [];
+    const opts = `<option value="">Select a category</option>` + cats.map((c) => `<option>${esc(c)}</option>`).join("");
+    current.disb.forEach((d, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<select class="cat">${opts}</select>
+        <div class="row"><input type="text" class="desc" placeholder="Detail (optional)"><input type="text" class="money amt" inputmode="decimal" placeholder="Cost R"></div>
+        <div class="row" style="align-items:center"><small>Attendance %</small><input type="number" class="att" inputmode="decimal" min="0" max="100" style="max-width:90px"><button class="rm" type="button">Remove</button></div>`;
+      const sel = li.querySelector(".cat"), desc = li.querySelector(".desc"), amt = li.querySelector(".amt"), att = li.querySelector(".att");
+      sel.value = d.cat || ""; if (d.cat && sel.value !== d.cat) { const o = document.createElement("option"); o.textContent = d.cat; sel.appendChild(o); sel.value = d.cat; }
+      desc.value = d.desc || ""; amt.value = fmtIn(d.amount); att.value = d.attend;
+      sel.onchange = () => { d.cat = sel.value; recalc(); };
+      desc.oninput = () => { d.desc = desc.value; recalc(); };
+      amt.oninput = () => { d.amount = amt.value; recalc(); };
+      att.oninput = () => { d.attend = att.value; recalc(); };
+      li.querySelector(".rm").onclick = () => { current.disb.splice(i, 1); renderDisb(); recalc(); };
+      ul.appendChild(li);
+    });
+  }
+  $("addDisbBtn").onclick = () => {
+    current.disb.push({ cat: "", desc: "", amount: "", attend: F.disbursementAttendancePercent || 0 });
+    renderDisb();
+    const last = $("disbList").lastElementChild; if (last) last.querySelector(".cat").focus();
+  };
+
+  // ---------- live total and autosave ----------
   let saveTimer = null;
   function recalc() {
     readEdit();
     const c = calc(current);
     $("liveFee").textContent = fmt0(c.fee);
-    if (c.timeOnly) { $("liveSub").textContent = c.time.total ? `${c.time.items.reduce((s, l) => s + l.hours, 0)} hours, time-based` + (c.discount ? " · less " + pct(Number(current.discount)) : "") : "Enter hours to begin"; }
-    else if (!c.value) { $("liveSub").textContent = "Enter the value of works to begin"; }
-    else if (c.belowTable) { $("liveSub").textContent = F.belowTableNote || "Below the first bracket of the fee table"; }
-    else {
-      $("liveSub").textContent = fmt0(c.value) + " value of works · " + (c.summary && c.summary[0] ? c.summary[0].replace(/^Complexity: /, "").toLowerCase() : "") + " · " + pct(c.stagesPct) + " of stages" + (c.time.total ? " · + " + fmt0(c.time.total) + " hours" : "") + (c.discount ? " · less " + pct(Number(current.discount)) : "");
+    const below = c.lines.find((l) => l.belowTable);
+    if (isMulti(current)) {
+      const parts = [];
+      if (c.value) parts.push(fmt0(c.value) + " value of works");
+      parts.push(`${c.lines.length} discipline${c.lines.length === 1 ? "" : "s"}`);
+      if (c.value && c.fee) parts.push(`= ${pct(c.fee / c.value * 100)} of the value of works`);
+      if (c.discount) parts.push("less " + pct(num(current.discount)));
+      $("liveSub").textContent = c.empty ? "Enter the value of works, then include the disciplines" : below ? (below.M.belowTableNote || "") : parts.join(" · ");
+      paintTabsOnly();
+    } else {
+      const t = c.lines.find((l) => l.type === "table"), h = c.lines.find((l) => l.type === "hours"), lp = c.lines.find((l) => l.type === "lump");
+      const only = (current.chargeMode || "none") === "only";
+      if (lp) $("liveSub").textContent = lp.fee ? "Negotiated lump sum" + (c.discount ? " · less " + pct(num(current.discount)) : "") : "Enter the agreed fee to begin";
+      else if (only) $("liveSub").textContent = h && h.fee ? `${h.hoursTotal} hours, time-based` + (c.discount ? " · less " + pct(num(current.discount)) : "") : "Enter hours to begin";
+      else if (!c.value) $("liveSub").textContent = "Enter the value of works to begin";
+      else if (below) $("liveSub").textContent = below.M.belowTableNote || "Below the first bracket of the fee table";
+      else $("liveSub").textContent = fmt0(c.value) + " value of works · " + ((t && t.summary && t.summary[0]) || "").replace(/^Complexity: /, "").toLowerCase() + (t && t.stagesPct !== undefined ? " · " + pct(t.stagesPct) + " of stages" : "") + (h && h.fee ? " · + " + fmt0(h.fee) + " hours" : "") + (c.discount ? " · less " + pct(num(current.discount)) : "");
+      if (t) {
+        const sum = (t.M && tableLine()) ? tableLine().stages.reduce((a, st) => a + (num(st.percent) || 0), 0) : 0;
+        $("stageSum").textContent = `Stage percentages total ${pct(sum)}` + (t.stagesPct !== undefined ? ` · ${pct(t.stagesPct)} selected` : "");
+        $("stageSum").style.color = Math.abs(sum - 100) > 0.01 ? "var(--warn)" : "";
+        if (current.mode === "scheme") $("repeatHint").textContent = t.repeat ? `${t.repeat.bespoke.length} bespoke building${t.repeat.bespoke.length === 1 ? "" : "s"} at full fee. Repeated: ${t.repeat.groups.map((g) => `${g.name} (${g.protos} prototype${g.protos > 1 ? "s" : ""} + ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join(", ")} at ${pct(t.repeat.pct)} on ${repeatStagesLabel(F).toLowerCase()}.` : "No repeated units yet. Add a unit type with a quantity above 1 to apply the adjustment.";
+      }
+      $("timeResult").textContent = h && h.fee ? "Hourly work: " + fmt0(h.fee) : "";
     }
-    $("timeResult").textContent = c.time.total ? "Hourly work: " + fmt0(c.time.total) : "";
     $("areaResult").textContent = current.mode === "single" && current.basis === "area" && c.value ? "Value of works: " + fmt0(c.value) : "";
     $("multiResult").textContent = current.mode === "scheme" && c.value ? "Total value of works: " + fmt0(c.value) : "";
-    if (current.mode === "scheme") {
-      $("repeatHint").textContent = c.repeat
-        ? `${c.repeat.bespoke.length} bespoke building${c.repeat.bespoke.length === 1 ? "" : "s"} at full fee. Repeated: ${c.repeat.groups.map((g) => `${g.name} (${g.protos} prototype${g.protos > 1 ? "s" : ""} + ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join(", ")} at ${pct(c.repeat.pct)} on ${repeatStagesLabel().toLowerCase()}.`
-        : "No repeated units yet. Add a unit type with a quantity above 1 to apply the adjustment.";
-    }
-    const sum = current.stages.reduce((s, st) => s + (Number(st.percent) || 0), 0);
-    $("stageSum").textContent = "Stage percentages total " + pct(sum) + (Math.abs(sum - 100) > 0.01 ? " (gazette default is 100%)" : " · " + pct(c.stagesPct) + " selected");
-    $("stageSum").style.color = Math.abs(sum - 100) > 0.01 ? "var(--warn)" : "";
-    // autosave, lightly debounced
     clearTimeout(saveTimer);
     saveTimer = setTimeout(persist, 400);
   }
   function persist() {
     if (!current) return;
-    // Don't save an untouched proposal (tap New, then Back) — it would clutter the list.
-    const touched = current.name || current.client || Number(current.area) || Number(current.value) || current.disb.length || current.blds.length || current.time.mode !== "none" || current.invoices.length;
+    const touched = current.name || current.client || num(current.area) || num(current.value) || current.disb.length || current.blds.length || current.invoices.length || (isMulti(current) && current.lines.some((l) => l.on)) || (current.chargeMode || "none") !== "none";
     if (!touched) return;
     current.updated = Date.now();
     const i = projects.findIndex((p) => p.id === current.id);
     if (i >= 0) projects[i] = current; else projects.push(current);
     save(LS_PROJECTS, projects);
   }
+  function persistNow() { clearTimeout(saveTimer); persist(); }
   $("viewBtn").onclick = () => { persist(); renderDoc(); show("proposalScreen", "Proposal"); };
+  $("editBtn").onclick = back;
+
   // Delete asks inside the page (no pop-up: some browsers block confirm()).
   $("deleteBtn").onclick = () => {
     $("delName").textContent = current.name || "this proposal";
@@ -929,170 +1301,125 @@
   };
   $("delNo").onclick = () => { $("deleteConfirm").style.display = "none"; $("deleteBtn").style.display = ""; };
   $("delYes").onclick = () => {
-    clearTimeout(saveTimer); // stop a pending autosave from putting it back
+    clearTimeout(saveTimer);
     projects = projects.filter((p) => p.id !== current.id); save(LS_PROJECTS, projects);
     current = null; stack = ["doorScreen", "homeScreen"]; renderHome(); show("homeScreen", homeTitle(), false); toast("Deleted");
   };
-  $("editBtn").onclick = back;
 
-  // ---------- invoices and payments ----------
-  // Amounts are what appears on the invoice: including VAT when the firm is registered.
-  const todayIso = () => new Date().toISOString().slice(0, 10);
-  function invoiceInfo(p, c) {
-    const feeIncl = c.total;   // fee + disbursements + VAT (VAT is 0 when not registered)
-    const invoiced = (p.invoices || []).reduce((s, i) => s + (Number(i.amount) || 0), 0);
-    const paid = (p.invoices || []).reduce((s, i) => s + (i.paid ? (Number(i.paidAmount) || 0) : 0), 0);
-    return { feeIncl, invoiced, paid, outstanding: invoiced - paid, toInvoice: feeIncl - invoiced };
+  // ===================================================================================
+  // Proposal document (on screen)
+  // ===================================================================================
+  function docLineHtml(r, l, n) {
+    const M = r.M;
+    let h = `<h5>${n}. ${esc(r.title)}</h5>`;
+    if (r.type === "lump" || r.negotiated) return h + `<table><tr><td>Negotiated fee${r.desc ? " · " + esc(r.desc) : ""}</td><td>${fmt(r.fee)}</td></tr></table>`;
+    if (r.type === "percent") return h + `<table><tr><td>${pct(r.percent)} of ${fmt0(r.value)}${r.ownValue ? " (this line's own value of works)" : ""}${r.desc ? " · " + esc(r.desc) : ""}</td><td>${fmt(r.fee)}</td></tr></table>`;
+    if (r.type === "hours") return h + `<table>${r.items.map((x) => `<tr><td>${esc(x.role)}${x.desc ? " · " + esc(x.desc) : ""}<br><span class="meta">${x.hours} hours × ${fmt0(x.rate)} per hour</span></td><td>${fmt(x.amount)}</td></tr>`).join("")}<tr class="tot"><td>Hourly work</td><td>${fmt(r.fee)}</td></tr></table>`;
+    // table line
+    h += (r.summary || []).map((s) => `<p>${esc(s)}</p>`).join("");
+    if (r.ownValue) h += `<p>${r.ownLabel ? "Cost of the " + esc(r.ownLabel) : "Priced on this line's own value of works"}: <b>${fmt0(r.value)}</b></p>`;
+    if (r.repeat) h += `<p>Repeated buildings: ${r.repeat.groups.map((g) => `${esc(g.name)}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${r.repeat.bespoke.length ? ` Bespoke at full fee: ${r.repeat.bespoke.map((b) => esc(b.name)).join(", ")}.` : ""}</p>`;
+    h += `<p class="meta">${esc(M.costOfWorksNote || "")}</p>`;
+    if (r.belowTable) return h + `<p class="note">${esc(M.belowTableNote || "")}</p>`;
+    if (!r.bracket) return h;
+    h += `<table>
+      <tr><td>Primary fee (bracket ${fmt0(r.bracket[0])} to ${r.bracket[1] === null ? "upwards" : fmt0(r.bracket[1])})</td><td>${fmt(r.primary)}</td></tr>
+      <tr><td>Plus ${pct(r.bracket[3])} on ${fmt0(r.value - bracketBase(r.bracket))}</td><td>${fmt(r.secondary)}</td></tr>
+      ${r.factorLabel ? `<tr><td>From the table</td><td>${fmt(r.basic)}</td></tr><tr><td>${esc(r.factorLabel)}</td><td>× ${(r.res.factor || 1).toFixed(3).replace(".", ",")}</td></tr>` : ""}
+      <tr class="tot"><td>${esc(M.feeLabel || "Guideline fee")}</td><td>${fmt(r.full)}</td></tr></table>`;
+    h += `<table>${r.stageLines.map((s) => `<tr><td>${s.partial ? esc(s.name) : `Stage ${esc(s.id)} · ${esc(s.name)}`}${s.adjusted ? " *" : ""} <span class="meta">(${pct(s.pc)})</span></td><td>${fmt(s.amt)}</td></tr>`).join("")}<tr class="tot"><td>Fee for stages included (${pct(r.stagesPct)})</td><td>${fmt(r.fee)}</td></tr></table>`;
+    if (r.repeat) h += `<p class="meta">* ${repeatStagesLabel(M)} adjusted for repeated buildings: bespoke buildings and prototypes at full fee, each repeat at ${pct(r.repeat.pct)} of the fee for those stages, weighted by value of works. ${esc(M.repeatedBuildings.note)}</p>`;
+    if (r.stageLines.some((s) => s.partial)) h += `<p class="meta">${esc(M.partialServiceNote || "")}</p>`;
+    return h;
   }
-  function renderInvoices() {
-    const p = current, c = calc(p), inv = invoiceInfo(p, c);
-    $("invOutstanding").textContent = fmt0(inv.outstanding);
-    $("invSub").textContent = inv.invoiced ? `${fmt0(inv.paid)} received of ${fmt0(inv.invoiced)} invoiced` : "Nothing invoiced yet";
-    $("invSummary").innerHTML = `
-      <tr><td>Proposed fee${settings.vat ? " incl. VAT" : ""}${c.disb.items.length ? " and disbursements" : ""}</td><td>${fmt(inv.feeIncl)}</td></tr>
-      <tr><td>Invoiced to date</td><td>${fmt(inv.invoiced)}</td></tr>
-      <tr><td>Paid to date</td><td>${fmt(inv.paid)}</td></tr>
-      <tr class="tot"><td>Outstanding (invoiced, not yet paid)</td><td>${fmt(inv.outstanding)}</td></tr>
-      <tr><td>Still to invoice</td><td>${fmt(inv.toInvoice)}</td></tr>`;
-    $("invVatNote").textContent = settings.vat ? "Invoice and payment amounts include VAT, as on the invoice." : "Amounts exclude VAT (firm not registered).";
-    const ul = $("invList"); ul.innerHTML = "";
-    p.invoices.forEach((i, idx) => {
-      const li = document.createElement("li"); li.className = i.paid ? "paid" : "";
-      li.innerHTML = `<div class="row"><input type="text" class="num" placeholder="Invoice no." style="flex:1"><input type="date" class="date" style="flex:1.4"></div>
-        <div class="row"><input type="text" class="desc" placeholder="Description, e.g. Stage 3 · Design development"></div>
-        <div class="row" style="align-items:center"><input type="number" class="amt" inputmode="decimal" placeholder="Amount R${settings.vat ? " incl. VAT" : ""}"><label style="margin:0;display:flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap"><input type="checkbox" class="pd" style="width:18px;height:18px;accent-color:var(--ok)"> Paid</label></div>
-        <div class="row pdRow" style="align-items:center"><small>Received</small><input type="date" class="pdate" style="flex:1.4"><input type="number" class="pamt" inputmode="decimal" placeholder="Amount received" style="flex:1"></div>
-        <div class="row" style="align-items:center;justify-content:space-between"><span class="pill"></span><span><button class="lnk send" type="button">Send PDF</button><button class="lnk dl" type="button">Download</button><button class="rm" type="button">Remove</button></span></div>`;
-      const q = (s) => li.querySelector(s);
-      const num = q(".num"), date = q(".date"), desc = q(".desc"), amt = q(".amt"), pd = q(".pd"), pdate = q(".pdate"), pamt = q(".pamt"), pill = q(".pill"), pdRow = q(".pdRow");
-      const ready = () => {
-        if (!(Number(i.amount) > 0)) { toast("Enter the invoice amount first"); return false; }
-        if (!i.number) { i.number = nextInvoiceNumber(); num.value = i.number; }
-        if (!i.date) { i.date = todayIso(); date.value = i.date; }
-        persistNow(); return true;
-      };
-      q(".send").onclick = async () => { if (!ready()) return; toast("Preparing invoice…"); const doc = await buildInvoicePdf(i); if (doc) await sharePdf(doc, invoiceFileName(i), `${settings.vat ? "Tax invoice" : "Invoice"} ${i.number}`); };
-      q(".dl").onclick = async () => { if (!ready()) return; const doc = await buildInvoicePdf(i); if (doc) doc.save(invoiceFileName(i)); };
-      num.value = i.number || ""; date.value = i.date || ""; desc.value = i.desc || ""; amt.value = i.amount; pd.checked = !!i.paid; pdate.value = i.paidDate || ""; pamt.value = i.paidAmount || "";
-      const paint = () => {
-        pdRow.style.display = i.paid ? "" : "none"; li.className = i.paid ? "paid" : "";
-        const a = Number(i.amount) || 0, r = i.paid ? Number(i.paidAmount) || 0 : 0;
-        pill.className = "pill" + (i.paid && r >= a - 0.005 ? " ok" : "");
-        pill.textContent = !a ? "" : i.paid ? (r >= a - 0.005 ? "Paid" : `Part paid · ${fmt0(a - r)} short`) : "Unpaid";
-      };
-      const upd = () => { i.number = num.value; i.date = date.value; i.desc = desc.value; i.amount = amt.value; i.paidDate = pdate.value; i.paidAmount = pamt.value; paint(); persistNow(); renderSummaryOnly(); };
-      [num, date, desc, amt, pdate, pamt].forEach((el) => { el.oninput = upd; el.onchange = upd; });
-      pd.onchange = () => { i.paid = pd.checked; if (i.paid) { if (!i.paidDate) { i.paidDate = todayIso(); pdate.value = i.paidDate; } if (!i.paidAmount) { i.paidAmount = i.amount; pamt.value = i.amount; } } upd(); };
-      q(".rm").onclick = () => { p.invoices.splice(idx, 1); persistNow(); renderInvoices(); };
-      ul.appendChild(li); paint();
-    });
+  function councilsUsed(c) {
+    const seen = {}; const out = [];
+    c.lines.forEach((r) => { if ((r.type === "table" || r.type === "hours") && r.M && !seen[r.M.id]) { seen[r.M.id] = true; out.push(r.M); } });
+    return out;
   }
-  function renderSummaryOnly() {
-    const c = calc(current), inv = invoiceInfo(current, c);
-    $("invOutstanding").textContent = fmt0(inv.outstanding);
-    $("invSub").textContent = inv.invoiced ? `${fmt0(inv.paid)} received of ${fmt0(inv.invoiced)} invoiced` : "Nothing invoiced yet";
-    const cells = $("invSummary").querySelectorAll("td:last-child");
-    [inv.feeIncl, inv.invoiced, inv.paid, inv.outstanding, inv.toInvoice].forEach((v, k) => { if (cells[k]) cells[k].textContent = fmt(v); });
+  function closingNote(c) {
+    const used = councilsUsed(c);
+    const refs = used.map((M) => `${M.council}, ${M.notice} (${M.gazette}). ${M.guidelineWording}`).join(" ");
+    return `${refs ? "Fees are calculated with reference to the guideline professional fees of the " + refs + " " : ""}Negotiated lines are as agreed between the parties. The fee above is a proposal and is open to negotiation. Where a project cost-based fee applies, the final fee is calculated on the final cost of the works. ${c.disb.items.length ? "Disbursements are estimates and are reimbursed at cost as incurred." : "Disbursements are excluded and will be reimbursed at cost as incurred."}`;
   }
-  function persistNow() { clearTimeout(saveTimer); persist(); }
-  $("invoicesBtn").onclick = () => { persist(); renderInvoices(); show("invoiceScreen", "Invoices"); };
-  $("invBackBtn").onclick = back;
-  $("addInvBtn").onclick = () => {
-    current.invoices.push({ id: Date.now().toString(36), number: nextInvoiceNumber(), date: todayIso(), desc: "", amount: "", paid: false, paidDate: "", paidAmount: "" });
-    persistNow(); renderInvoices();
-    const last = $("invList").lastElementChild; if (last) last.querySelector(".desc").focus();
-  };
-  $("planInvBtn").onclick = () => {
-    const c = calc(current);
-    const vatF = settings.vat ? 1 + F.vatRate : 1;
-    const discF = 1 - (Number(current.discount) || 0) / 100;
-    const lines = [];
-    c.stageLines.forEach((s) => lines.push({ desc: `Stage ${s.id} · ${s.name}`, amount: s.amt * discF * vatF }));
-    if (c.time.total) lines.push({ desc: c.timeOnly ? "Time-based fee" : "Additional services (hourly)", amount: c.time.total * discF * vatF });
-    if (c.disb.total) lines.push({ desc: "Disbursements", amount: c.disb.total * vatF });
-    if (!lines.length) { toast("Nothing to plan yet: enter the fee first"); return; }
-    // Round each line to cents, then let the last line absorb the rounding so the lines add up to the total exactly.
-    const r2 = (v) => Math.round(v * 100) / 100;
-    lines.forEach((l) => { l.amount = r2(l.amount); });
-    const target = r2(c.total), sum = r2(lines.reduce((s, l) => s + l.amount, 0));
-    lines[lines.length - 1].amount = r2(lines[lines.length - 1].amount + (target - sum));
-    lines.forEach((l) => current.invoices.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), number: "", date: "", desc: l.desc, amount: l.amount.toString(), paid: false, paidDate: "", paidAmount: "" }));
-    persistNow(); renderInvoices(); toast(`${lines.length} planned invoices added`);
-  };
-
-  // ---------- proposal document ----------
-  function esc(s) { return String(s || "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
   function renderDoc() {
     const p = current, c = calc(p);
     const today = new Date();
-    const validTo = new Date(today.getTime() + (Number(settings.valid) || 30) * 86400000);
+    const validTo = new Date(today.getTime() + (num(settings.valid) || 30) * 86400000);
     const d = (x) => x.toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
     const initials = (settings.firm || "FP").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
     const logo = settings.logo ? `<img class="logo" src="${settings.logo}" alt="">` : `<div class="logo ph">${esc(initials)}</div>`;
-    const stageRows = c.stageLines.map((s) => `<tr><td>${s.partial ? esc(s.name) : `Stage ${esc(s.id)} · ${esc(s.name)}`}${s.adjusted ? " *" : ""}</td><td>${pct(s.pc)}</td><td>${fmt(s.amt)}</td></tr>`).join("");
-    let worksLine;
-    if (p.mode === "scheme") {
-      const prim = c.comps.filter((b) => !b.isUnit), units = c.comps.filter((b) => b.isUnit);
-      const row = (b) => `<tr><td>${esc(b.name)}<br><span class="meta">${b.byArea ? `${b.area} m² × ${fmt0(b.rate)} per m²` : "estimated value"}${b.isUnit ? ` per unit × ${b.qty}` : ""}</span></td><td>${fmt0(b.value)}</td></tr>`;
-      worksLine = `<table>
-        ${prim.length ? `<tr class="sub"><td colspan="2">Primary buildings</td></tr>${prim.map(row).join("")}` : ""}
-        ${units.length ? `<tr class="sub"><td colspan="2">Repeated units</td></tr>${units.map(row).join("")}` : ""}
-        <tr class="tot"><td>Total value of works</td><td>${fmt0(c.value)}</td></tr></table>`;
-    } else {
-      worksLine = p.basis === "area" ? `${esc(p.area)} m² × ${fmt0(Number(p.rate) || 0)} per m² = <b>${fmt0(c.value)}</b>` : `<b>${fmt0(c.value)}</b>`;
+    let worksLine = "";
+    if (c.value) {
+      if (p.mode === "scheme") {
+        const prim = c.comps.filter((b) => !b.isUnit), units = c.comps.filter((b) => b.isUnit);
+        const row = (b) => `<tr><td>${esc(b.name)}<br><span class="meta">${b.byArea ? `${b.area} m² × ${fmt0(b.rate)} per m²` : "estimated value"}${b.isUnit ? ` per unit × ${b.qty}` : ""}</span></td><td>${fmt0(b.value)}</td></tr>`;
+        worksLine = `<p>Development scheme, estimated value of works:</p><table>
+          ${prim.length ? `<tr class="sub"><td colspan="2">Primary buildings</td></tr>${prim.map(row).join("")}` : ""}
+          ${units.length ? `<tr class="sub"><td colspan="2">Repeated units</td></tr>${units.map(row).join("")}` : ""}
+          <tr class="tot"><td>Total value of works</td><td>${fmt0(c.value)}</td></tr></table>`;
+      } else {
+        worksLine = `<p>Estimated value of works: ${p.basis === "area" ? `${esc(p.area)} m² × ${fmt0(num(p.rate) || 0)} per m² = <b>${fmt0(c.value)}</b>` : `<b>${fmt0(c.value)}</b>`}</p>`;
+      }
     }
-    const repeatLine = c.repeat ? `<p>Repeated buildings: ${c.repeat.groups.map((g) => `${esc(g.name)}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${c.repeat.bespoke.length ? ` Bespoke at full fee: ${c.repeat.bespoke.map((b) => esc(b.name)).join(", ")}.` : ""}</p>` : "";
-    const repeatNote = c.repeat ? `<p class="meta">* ${repeatStagesLabel()} adjusted for repeated buildings: bespoke buildings and prototypes at full fee, each repeat at ${pct(c.repeat.pct)} of the fee for those stages, weighted by value of works. ${esc(F.repeatedBuildings.note)}</p>` : "";
-    const tableBlock = c.timeOnly || !c.bracket ? "" : `
-      <h4>${esc(F.feeLabel || "Guideline fee")}</h4>
-      <table>
-        <tr><td>Primary fee (bracket ${fmt0(c.bracket[0])} to ${c.bracket[1] === null ? "upwards" : fmt0(c.bracket[1])})</td><td colspan="2">${fmt(c.primary)}</td></tr>
-        <tr><td>Plus ${pct(c.bracket[3])} on ${fmt0(c.value - bracketBase(c.bracket))}</td><td colspan="2">${fmt(c.secondary)}</td></tr>
-        ${c.factorLabel ? `<tr><td>From the table</td><td colspan="2">${fmt(c.basic)}</td></tr><tr><td>${esc(c.factorLabel)}</td><td colspan="2">× ${(c.res.factor || 1).toFixed(3).replace(".", ",")}</td></tr>` : ""}
-        <tr class="tot"><td>${esc(F.feeLabel || "Guideline fee")}</td><td colspan="2">${fmt(c.full)}</td></tr>
-      </table>`;
-    const timeRows = c.time.items.map((l) => `<tr><td>${esc(l.role)}${l.desc ? " · " + esc(l.desc) : ""}<br><span class="meta">${l.hours} hours × ${fmt0(l.rate)} per hour</span></td><td>${fmt(l.amount)}</td></tr>`).join("");
-    const timeBlock = c.time.items.length ? `<h4>${c.timeOnly ? "Time-based fee" : "Additional services, time-based"}</h4><table>${timeRows}<tr class="tot"><td>Hourly work</td><td>${fmt(c.time.total)}</td></tr></table>${c.timeOnly ? "" : `<p class="meta">Clause 18: unless otherwise agreed, the fee for additional services is time-based at the guideline hourly rates.</p>`}` : "";
-    const costBlock = c.timeOnly || !c.bracket ? (c.belowTable ? `<p class="note">${esc(F.belowTableNote || "")}</p>` : "") : `
-      ${tableBlock}
-      <h4>Work stages included</h4>
-      <table>${stageRows}
-        <tr class="tot"><td>Fee for stages included (${pct(c.stagesPct)})</td><td></td><td>${fmt(c.stageFee)}</td></tr>
-      </table>
-      ${repeatNote}`;
-    const disbRows = c.disb.items.map((d) => `<tr><td>${esc(d.cat)}${d.desc ? " · " + esc(d.desc) : ""}${d.attendPct ? ` <span class="meta">(cost ${fmt(d.cost)} + ${pct(d.attendPct)} attendance)</span>` : ""}</td><td>${fmt(d.line)}</td></tr>`).join("");
+    const disbRows = c.disb.items.map((dd) => `<tr><td>${esc(dd.cat)}${dd.desc ? " · " + esc(dd.desc) : ""}${dd.attendPct ? ` <span class="meta">(cost ${fmt(dd.cost)} + ${pct(dd.attendPct)} attendance)</span>` : ""}</td><td>${fmt(dd.line)}</td></tr>`).join("");
     const disbBlock = c.disb.items.length ? `<h4>Disbursements (estimate)</h4><table>${disbRows}<tr class="tot"><td>Disbursements</td><td>${fmt(c.disb.total)}</td></tr></table>` : "";
-    const subtotalRow = c.disb.items.length ? `<tr><td>Disbursements (estimate)</td><td>${fmt(c.disb.total)}</td></tr><tr class="${settings.vat ? "" : "tot"}"><td>Fee and disbursements${settings.vat ? " (excl. VAT)" : ""}</td><td>${fmt(c.fee + c.disb.total)}</td></tr>` : "";
-
+    const many = isMulti(p);
+    let middle, feeRows = "";
+    if (many) {
+      middle = `${worksLine ? `<h4>Basis</h4>${worksLine}` : ""}<h4>Fees by discipline</h4>${c.lines.map((r, i) => docLineHtml(r, p.lines[i], i + 1)).join("")}`;
+      feeRows = c.lines.map((r, i) => `<tr><td>${i + 1}. ${esc(r.title)}</td><td>${fmt(r.fee)}</td></tr>`).join("") + `<tr><td>Fees before discount</td><td>${fmt(c.before)}</td></tr>`;
+    } else {
+      // The original single-discipline layout
+      const t = c.lines.find((r) => r.type === "table"), h = c.lines.find((r) => r.type === "hours"), lp = c.lines.find((r) => r.type === "lump");
+      const only = (p.chargeMode || "none") === "only";
+      const M = t ? t.M : F;
+      let basis = "";
+      if (lp) basis = `<h4>Basis</h4><p>Negotiated lump sum for the agreed scope of work${lp.desc ? ": " + esc(lp.desc) : ""}.</p>${worksLine || ""}<h4>Fee</h4><table><tr class="tot"><td>Negotiated lump sum</td><td>${fmt(lp.fee)}</td></tr></table>`;
+      else if (only) basis = `<h4>Basis</h4><p>Time-based fee for the agreed scope of work, at the guideline hourly rates.</p>`;
+      else {
+        basis = `<h4>Basis</h4>${worksLine || "<p>Estimated value of works: to be confirmed</p>"}`;
+        if (t) basis += (t.summary || []).map((s) => `<p>${esc(s)}</p>`).join("");
+        if (t && t.repeat) basis += `<p>Repeated buildings: ${t.repeat.groups.map((g) => `${esc(g.name)}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${t.repeat.bespoke.length ? ` Bespoke at full fee: ${t.repeat.bespoke.map((b) => esc(b.name)).join(", ")}.` : ""}</p>`;
+        basis += `<p class="meta">${esc(M.costOfWorksNote || "")}</p>`;
+      }
+      let cost = "";
+      if (t && t.belowTable) cost = `<p class="note">${esc(M.belowTableNote || "")}</p>`;
+      else if (t && t.bracket) {
+        cost = `<h4>${esc(M.feeLabel || "Guideline fee")}</h4><table>
+          <tr><td>Primary fee (bracket ${fmt0(t.bracket[0])} to ${t.bracket[1] === null ? "upwards" : fmt0(t.bracket[1])})</td><td colspan="2">${fmt(t.primary)}</td></tr>
+          <tr><td>Plus ${pct(t.bracket[3])} on ${fmt0(t.value - bracketBase(t.bracket))}</td><td colspan="2">${fmt(t.secondary)}</td></tr>
+          ${t.factorLabel ? `<tr><td>From the table</td><td colspan="2">${fmt(t.basic)}</td></tr><tr><td>${esc(t.factorLabel)}</td><td colspan="2">× ${(t.res.factor || 1).toFixed(3).replace(".", ",")}</td></tr>` : ""}
+          <tr class="tot"><td>${esc(M.feeLabel || "Guideline fee")}</td><td colspan="2">${fmt(t.full)}</td></tr></table>
+          <h4>Work stages included</h4><table>${t.stageLines.map((s) => `<tr><td>${s.partial ? esc(s.name) : `Stage ${esc(s.id)} · ${esc(s.name)}`}${s.adjusted ? " *" : ""}</td><td>${pct(s.pc)}</td><td>${fmt(s.amt)}</td></tr>`).join("")}
+          <tr class="tot"><td>Fee for stages included (${pct(t.stagesPct)})</td><td></td><td>${fmt(t.fee)}</td></tr></table>`;
+        if (t.repeat) cost += `<p class="meta">* ${repeatStagesLabel(M)} adjusted for repeated buildings: bespoke buildings and prototypes at full fee, each repeat at ${pct(t.repeat.pct)} of the fee for those stages, weighted by value of works. ${esc(M.repeatedBuildings.note)}</p>`;
+        if (t.stageLines.some((s) => s.partial)) cost += `<p class="meta">${esc(M.partialServiceNote || "")}</p>`;
+      }
+      let time = "";
+      if (h && h.items.length) time = `<h4>${only ? "Time-based fee" : "Additional services, time-based"}</h4><table>${h.items.map((x) => `<tr><td>${esc(x.role)}${x.desc ? " · " + esc(x.desc) : ""}<br><span class="meta">${x.hours} hours × ${fmt0(x.rate)} per hour</span></td><td>${fmt(x.amount)}</td></tr>`).join("")}<tr class="tot"><td>Hourly work</td><td>${fmt(h.fee)}</td></tr></table>`;
+      middle = basis + cost + time;
+      if (t && h && h.fee) feeRows = `<tr><td>Fee on value of works</td><td>${fmt(t.fee)}</td></tr><tr><td>Hourly work</td><td>${fmt(h.fee)}</td></tr>`;
+    }
     $("doc").innerHTML = `
       <div class="head">${logo}<div class="firm"><b>${esc(settings.firm || "Your firm name")}</b><span>${esc(settings.tag)}</span><span>${esc(settings.contact)}</span></div></div>
       <h3>Fee proposal: ${esc(p.name || "Untitled project")}</h3>
       <p class="meta">Prepared for ${esc(p.client || "the client")} · ${d(today)} · valid until ${d(validTo)}</p>
-
-      ${c.timeOnly ? `<h4>Basis</h4><p>Time-based fee for the agreed scope of work, at the guideline hourly rates.</p>` : `
-      <h4>Basis</h4>
-      ${p.mode === "scheme" ? `<p>Development scheme, estimated value of works:</p>${worksLine}` : `<p>Estimated value of works: ${worksLine}</p>`}
-      ${(c.summary || []).map((s) => `<p>${esc(s)}</p>`).join("")}
-      ${repeatLine}
-      <p class="meta">${esc(F.costOfWorksNote)}</p>`}
-      ${costBlock}
-      ${timeBlock}
+      ${middle}
       ${disbBlock}
-
       <h4>Proposed fee</h4>
       <table>
-        ${!c.timeOnly && c.time.total ? `<tr><td>Fee on value of works</td><td>${fmt(c.stageFee)}</td></tr><tr><td>Hourly work</td><td>${fmt(c.time.total)}</td></tr>` : ""}
-        ${c.discount ? `<tr><td>Less discount (${pct(Number(p.discount))})</td><td>− ${fmt(c.discount)}</td></tr>` : ""}
+        ${feeRows}
+        ${c.discount ? `<tr><td>Less discount (${pct(num(p.discount))})</td><td>− ${fmt(c.discount)}</td></tr>` : ""}
         <tr class="${settings.vat || c.disb.items.length ? "" : "tot"}"><td>Professional fee${settings.vat ? " (excl. VAT)" : ""}</td><td>${fmt(c.fee)}</td></tr>
-        ${subtotalRow}
-        ${settings.vat ? `<tr class="sub"><td>VAT at ${pct(F.vatRate * 100)}</td><td>${fmt(c.vat)}</td></tr><tr class="tot"><td>Total including VAT</td><td>${fmt(c.total)}</td></tr>` : ""}
+        ${c.disb.items.length ? `<tr><td>Disbursements (estimate)</td><td>${fmt(c.disb.total)}</td></tr><tr class="${settings.vat ? "" : "tot"}"><td>Fee and disbursements${settings.vat ? " (excl. VAT)" : ""}</td><td>${fmt(c.fee + c.disb.total)}</td></tr>` : ""}
+        ${settings.vat ? `<tr class="sub"><td>VAT at ${pct(VAT_RATE * 100)}</td><td>${fmt(c.vat)}</td></tr><tr class="tot"><td>Total including VAT</td><td>${fmt(c.total)}</td></tr>` : ""}
       </table>
       ${p.notes ? `<h4>Notes</h4><p>${esc(p.notes).replace(/\n/g, "<br>")}</p>` : ""}
       <h4>Acceptance</h4>
       <p>I/we accept this fee proposal and appoint ${esc(settings.firm || "the firm")} on the terms set out above.</p>
       <div class="sig"><div>Name</div><div>Signature</div><div>Date</div></div>
-      <p class="note">Fees are calculated with reference to the guideline for professional fees of the ${esc(F.council)}, ${esc(F.notice)} (${esc(F.gazette)}). ${esc(F.guidelineWording)} The fee above is a proposal and is open to negotiation. Where a project cost-based fee applies, the final fee is calculated on the final cost of the works. ${c.disb.items.length ? "Disbursements are estimates and are reimbursed at cost as incurred." : "Disbursements are excluded and will be reimbursed at cost as incurred."}</p>
-    `;
+      <p class="note">${esc(closingNote(c))}</p>`;
   }
   function proposalText() {
     const p = current, c = calc(p);
@@ -1100,39 +1427,36 @@
       `${settings.firm || "Fee proposal"}: ${p.name || "Untitled project"}`,
       `Prepared for ${p.client || "the client"}`,
       ``,
-      c.timeOnly ? `Time-based fee at guideline hourly rates` : `Estimated value of works: ${fmt0(c.value)} (${(c.summary || []).join("; ")})`,
-      c.timeOnly ? null : `${F.feeLabel || "Guideline fee"}: ${fmt(c.full)}`,
-      c.timeOnly ? null : `Stages included: ${p.stages.filter((s) => s.on).map((s) => s.id).join(", ")} (${pct(c.stagesPct)})`,
-      c.time.total ? `Hourly work: ${c.time.items.map((l) => `${l.role} ${l.hours} h`).join(", ")} = ${fmt(c.time.total)}` : null,
-      c.repeat ? `Repeated buildings: ${c.repeat.groups.map((g) => `${g.name} ${g.qty} units (${g.protos} prototype(s))`).join(", ")}; stages 1 to 4 on each repeat at ${pct(c.repeat.pct)}` : null,
-      c.discount ? `Discount: ${pct(Number(p.discount))}` : null,
-      `Professional fee${settings.vat ? " excl. VAT" : ""}: ${fmt(c.fee)}`,
-      c.disb.items.length ? `Disbursements (estimate): ${fmt(c.disb.total)}` : null,
-      settings.vat ? `Total incl. VAT: ${fmt(c.total)}` : null,
-      ``,
-      `Based on the ${F.council} guideline for professional fees (${F.notice}). Guideline only, open to negotiation.`,
-      settings.contact || null
-    ].filter((l) => l !== null);
-    return lines.join("\n");
+      c.value ? `Estimated value of works: ${fmt0(c.value)}` : null
+    ];
+    if (isMulti(p)) c.lines.forEach((r, i) => lines.push(`${i + 1}. ${r.title}: ${fmt(r.fee)}${r.type === "table" && r.stagesPct !== undefined ? ` (${pct(r.stagesPct)} of stages)` : ""}`));
+    else c.lines.forEach((r) => {
+      if (r.type === "table" && r.bracket) { lines.push(`${(r.summary || []).join("; ")}`, `${r.M.feeLabel || "Guideline fee"}: ${fmt(r.full)}`, `Stages included: ${pct(r.stagesPct)} = ${fmt(r.fee)}`); }
+      if (r.type === "hours" && r.fee) lines.push(`Hourly work: ${r.items.map((x) => `${x.role} ${x.hours} h`).join(", ")} = ${fmt(r.fee)}`);
+      if (r.type === "lump") lines.push(`Negotiated lump sum: ${fmt(r.fee)}`);
+    });
+    if (c.discount) lines.push(`Discount: ${pct(num(p.discount))}`);
+    lines.push(`Professional fee${settings.vat ? " excl. VAT" : ""}: ${fmt(c.fee)}`);
+    if (c.disb.items.length) lines.push(`Disbursements (estimate): ${fmt(c.disb.total)}`);
+    if (settings.vat) lines.push(`Total incl. VAT: ${fmt(c.total)}`);
+    lines.push(``, "Guideline fees per the councils' gazetted tariffs; open to negotiation.", settings.contact || null);
+    return lines.filter((l) => l !== null).join("\n");
   }
   $("shareTextBtn").onclick = async () => {
     const text = proposalText();
     const title = "Fee proposal: " + (current.name || "project");
-    if (navigator.share) {
-      try { await navigator.share({ title, text }); return; } catch (e) { if (e && e.name === "AbortError") return; }
-    }
-    const to = current.email || "";
-    location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text)}`;
+    if (navigator.share) { try { await navigator.share({ title, text }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+    location.href = `mailto:${encodeURIComponent(current.email || "")}?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text)}`;
   };
 
-  // ---------- PDF (built in the page with jsPDF; nothing leaves the phone) ----------
+  // ===================================================================================
+  // PDF (built in the page with jsPDF; nothing leaves the phone)
+  // ===================================================================================
+  const PDF = { W: 210, M: 18, grey: [107, 114, 128], ink: [26, 26, 26] };
   const pdfName = () => ("Fee proposal - " + (current.name || "project")).replace(/[\\/:*?"<>|]+/g, "-") + ".pdf";
   function loadImage(src) { return new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; }); }
   function hexRgb(h) { const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h || ""); return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [31, 42, 68]; }
-  const pdfMoney = (s) => s.replace(/−/g, "-");   // jsPDF's built-in fonts have no Unicode minus
-  const PDF = { W: 210, M: 18, grey: [107, 114, 128], ink: [26, 26, 26] };
-  const fmtDate = (iso) => { if (!iso) return ""; const t = new Date(iso + "T00:00:00"); return isNaN(t) ? iso : t.toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" }); };
-  // Letterhead shared by the proposal and the invoice: logo in proportion, firm details, accent rule.
+  const pdfMoney = (s) => String(s).replace(/−/g, "-").replace(/×/g, "x");
   async function pdfHeader(doc) {
     const { W, M, grey, ink } = PDF, accent = hexRgb(settings.colour);
     let y = M, x = M;
@@ -1166,28 +1490,15 @@
     doc.save(name);
     toast("PDF downloaded. Attach it to your email or message.");
   }
-  async function buildPdf() {
-    if (!window.jspdf) { toast("PDF library not loaded. Check the connection and try again."); return null; }
-    const p = current, c = calc(p);
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
-    const W = PDF.W, M = PDF.M, CW = W - 2 * M;
-    const grey = PDF.grey, ink = PDF.ink;
-    const today = new Date(), validTo = new Date(today.getTime() + (Number(settings.valid) || 30) * 86400000);
-    const d = (x) => x.toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
-    let y = await pdfHeader(doc);
-
-    doc.setFont("helvetica", "bold").setFontSize(13).setTextColor(...ink).text("Fee proposal: " + (p.name || "Untitled project"), M, y);
-    y += 5.5;
-    doc.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(...grey);
-    doc.text(`Prepared for ${p.client || "the client"}  ·  ${d(today)}  ·  valid until ${d(validTo)}`, M, y);
-    y += 7;
-
-    const h4 = (t) => { if (y > 265) { doc.addPage(); y = M; } doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...grey).text(t.toUpperCase(), M, y); y += 4; };
-    const para = (t, size = 9.5, col = ink) => { doc.setFont("helvetica", "normal").setFontSize(size).setTextColor(...col); const lines = doc.splitTextToSize(t, CW); if (y + lines.length * size * 0.42 > 280) { doc.addPage(); y = M; } doc.text(lines, M, y); y += lines.length * size * 0.42 + 2; };
-    const table = (rows, opts = {}) => {
-      doc.autoTable(Object.assign({
-        startY: y, margin: { left: M, right: M }, theme: "plain",
+  function pdfTools(doc) {
+    const { W, M, grey, ink } = PDF, CW = W - 2 * M;
+    const st = { y: M };
+    const h4 = (t) => { if (st.y > 265) { doc.addPage(); st.y = M; } doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...grey).text(t.toUpperCase(), M, st.y); st.y += 4; };
+    const h5 = (t) => { if (st.y > 260) { doc.addPage(); st.y = M; } st.y += 2; doc.setFont("helvetica", "bold").setFontSize(10.5).setTextColor(...ink).text(t, M, st.y); st.y += 5; };
+    const para = (t, size = 9.5, col = ink) => { doc.setFont("helvetica", "normal").setFontSize(size).setTextColor(...col); const lines = doc.splitTextToSize(pdfMoney(t), CW); if (st.y + lines.length * size * 0.42 > 280) { doc.addPage(); st.y = M; } doc.text(lines, M, st.y); st.y += lines.length * size * 0.42 + 2; };
+    const table = (rows) => {
+      doc.autoTable({
+        startY: st.y, margin: { left: M, right: M }, theme: "plain",
         styles: { font: "helvetica", fontSize: 9, textColor: ink, cellPadding: { top: 1.6, bottom: 1.6, left: 0, right: 0 }, lineColor: [229, 231, 235], lineWidth: { bottom: 0.2 } },
         columnStyles: { 0: { cellWidth: "auto" }, 1: { halign: "right", cellWidth: 38 } },
         body: rows.map((r) => r.map(pdfMoney)),
@@ -1197,18 +1508,29 @@
           if (r._sub) { data.cell.styles.textColor = grey; }
           if (r._head) { data.cell.styles.textColor = grey; data.cell.styles.fontSize = 8; data.cell.styles.lineWidth = 0; }
         }
-      }, opts));
-      y = doc.lastAutoTable.finalY + 5;
+      });
+      st.y = doc.lastAutoTable.finalY + 5;
     };
     const tot = (a, b) => Object.assign([a, b], { _tot: true });
     const sub = (a, b) => Object.assign([a, b], { _sub: true });
     const head = (a) => Object.assign([a, ""], { _head: true });
+    return { st, h4, h5, para, table, tot, sub, head, CW, M, grey, ink };
+  }
+  async function buildPdf() {
+    if (!window.jspdf) { toast("PDF library not loaded. Check the connection and try again."); return null; }
+    const p = current, c = calc(p);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const T = pdfTools(doc);
+    const { h4, h5, para, table, tot, sub, head, grey, ink, M, CW } = T;
+    const today = new Date(), validTo = new Date(today.getTime() + (num(settings.valid) || 30) * 86400000);
+    const d = (x) => x.toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
+    T.st.y = await pdfHeader(doc);
+    doc.setFont("helvetica", "bold").setFontSize(13).setTextColor(...ink).text("Fee proposal: " + (p.name || "Untitled project"), M, T.st.y); T.st.y += 5.5;
+    doc.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(...grey).text(`Prepared for ${p.client || "the client"}  ·  ${d(today)}  ·  valid until ${d(validTo)}`, M, T.st.y); T.st.y += 7;
 
-    // Basis
-    h4("Basis");
-    if (c.timeOnly) {
-      para("Time-based fee for the agreed scope of work, at the guideline hourly rates.");
-    } else {
+    if (c.value && !((p.chargeMode || "none") === "only" && !isMulti(p))) {
+      h4("Basis");
       if (p.mode === "scheme") {
         const rows = [];
         const prim = c.comps.filter((b) => !b.isUnit), units = c.comps.filter((b) => b.isUnit);
@@ -1216,85 +1538,94 @@
         if (prim.length) { rows.push(head("Primary buildings")); prim.forEach((b) => rows.push(line(b))); }
         if (units.length) { rows.push(head("Repeated units")); units.forEach((b) => rows.push(line(b))); }
         rows.push(tot("Total value of works", fmt0(c.value)));
-        para("Development scheme, estimated value of works:");
-        table(rows);
+        para("Development scheme, estimated value of works:"); table(rows);
       } else {
-        para("Estimated value of works: " + (p.basis === "area" ? `${p.area} m² × ${fmt0(Number(p.rate) || 0)} per m² = ${fmt0(c.value)}` : fmt0(c.value)));
+        para("Estimated value of works: " + (p.basis === "area" ? `${p.area} m² × ${fmt0(num(p.rate) || 0)} per m² = ${fmt0(c.value)}` : fmt0(c.value)));
       }
-      (c.summary || []).forEach((s) => para(s));
-      if (c.repeat) para(`Repeated buildings: ${c.repeat.groups.map((g) => `${g.name}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${c.repeat.bespoke.length ? ` Bespoke at full fee: ${c.repeat.bespoke.map((b) => b.name).join(", ")}.` : ""}`);
-      para(F.costOfWorksNote, 8, grey);
     }
-
-    // Cost-based fee
-    if (!c.timeOnly && c.belowTable) para(F.belowTableNote || "", 8, grey);
-    if (!c.timeOnly && c.bracket) {
-      h4(F.feeLabel || "Guideline fee");
+    const many = isMulti(p);
+    if (many) h4("Fees by discipline");
+    c.lines.forEach((r, i) => {
+      const M2 = r.M;
+      const only = (p.chargeMode || "none") === "only";
+      if (many) h5(`${i + 1}. ${r.title}`);
+      else if (r.type === "lump") { h4("Basis"); para(`Negotiated lump sum for the agreed scope of work${r.desc ? ": " + r.desc : ""}.`); table([tot("Negotiated lump sum", fmt(r.fee))]); return; }
+      else if (r.type === "hours") { if (r.items.length) { h4(only ? "Time-based fee" : "Additional services, time-based"); table(r.items.map((x) => [`${x.role}${x.desc ? " · " + x.desc : ""}   (${x.hours} hours × ${fmt0(x.rate)} per hour)`, fmt(x.amount)]).concat([tot("Hourly work", fmt(r.fee))])); } return; }
+      else if (r.type === "table") {
+        if (!c.value) h4("Basis");
+        (r.summary || []).forEach((s) => para(s));
+        if (r.repeat) para(`Repeated buildings: ${r.repeat.groups.map((g) => `${g.name}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${r.repeat.bespoke.length ? ` Bespoke at full fee: ${r.repeat.bespoke.map((b) => b.name).join(", ")}.` : ""}`);
+        para(M2.costOfWorksNote || "", 8, grey);
+        if (r.belowTable) { para(M2.belowTableNote || "", 8, grey); return; }
+        if (!r.bracket) return;
+        h4(M2.feeLabel || "Guideline fee");
+        const rows = [
+          [`Primary fee (bracket ${fmt0(r.bracket[0])} to ${r.bracket[1] === null ? "upwards" : fmt0(r.bracket[1])})`, fmt(r.primary)],
+          [`Plus ${pct(r.bracket[3])} on ${fmt0(r.value - bracketBase(r.bracket))}`, fmt(r.secondary)]
+        ];
+        if (r.factorLabel) { rows.push(["From the table", fmt(r.basic)]); rows.push([r.factorLabel, "x " + (r.res.factor || 1).toFixed(3).replace(".", ",")]); }
+        rows.push(tot(M2.feeLabel || "Guideline fee", fmt(r.full)));
+        table(rows);
+        h4("Work stages included");
+        table(r.stageLines.map((s) => [`${s.partial ? s.name : `Stage ${s.id} · ${s.name}`}${s.adjusted ? " *" : ""}   (${pct(s.pc)})`, fmt(s.amt)]).concat([tot(`Fee for stages included (${pct(r.stagesPct)})`, fmt(r.fee))]));
+        if (r.repeat) para(`* ${repeatStagesLabel(M2)} adjusted for repeated buildings: bespoke buildings and prototypes at full fee, each repeat at ${pct(r.repeat.pct)} of the fee for those stages, weighted by value of works. ${M2.repeatedBuildings.note}`, 8, grey);
+        if (r.stageLines.some((s) => s.partial)) para(M2.partialServiceNote || "", 8, grey);
+        return;
+      }
+      if (r.type === "lump" || r.negotiated) { table([tot(`Negotiated fee${r.desc ? " · " + r.desc : ""}`, fmt(r.fee))]); return; }
+      if (r.type === "percent") { table([tot(`${pct(r.percent)} of ${fmt0(r.value)}${r.ownValue ? " (this line's own value)" : ""}${r.desc ? " · " + r.desc : ""}`, fmt(r.fee))]); return; }
+      if (r.type === "hours") { table(r.items.map((x) => [`${x.role}${x.desc ? " · " + x.desc : ""}   (${x.hours} hours × ${fmt0(x.rate)} per hour)`, fmt(x.amount)]).concat([tot("Hourly work", fmt(r.fee))])); return; }
+      (r.summary || []).forEach((s) => para(s));
+      if (r.ownValue) para(`${r.ownLabel ? "Cost of the " + r.ownLabel : "Priced on this line's own value of works"}: ${fmt0(r.value)}`);
+      if (r.repeat) para(`Repeated buildings: ${r.repeat.groups.map((g) => `${g.name}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${r.repeat.bespoke.length ? ` Bespoke at full fee: ${r.repeat.bespoke.map((b) => b.name).join(", ")}.` : ""}`);
+      para(M2.costOfWorksNote || "", 8, grey);
+      if (r.belowTable) { para(M2.belowTableNote || "", 8, grey); return; }
+      if (!r.bracket) return;
       const rows = [
-        [`Primary fee (bracket ${fmt0(c.bracket[0])} to ${c.bracket[1] === null ? "upwards" : fmt0(c.bracket[1])})`, fmt(c.primary)],
-        [`Plus ${pct(c.bracket[3])} on ${fmt0(c.value - bracketBase(c.bracket))}`, fmt(c.secondary)]
+        [`Primary fee (bracket ${fmt0(r.bracket[0])} to ${r.bracket[1] === null ? "upwards" : fmt0(r.bracket[1])})`, fmt(r.primary)],
+        [`Plus ${pct(r.bracket[3])} on ${fmt0(r.value - bracketBase(r.bracket))}`, fmt(r.secondary)]
       ];
-      if (c.factorLabel) { rows.push(["From the table", fmt(c.basic)]); rows.push([c.factorLabel, "x " + (c.res.factor || 1).toFixed(3).replace(".", ",")]); }
-      rows.push(tot(F.feeLabel || "Guideline fee", fmt(c.full)));
+      if (r.factorLabel) { rows.push(["From the table", fmt(r.basic)]); rows.push([r.factorLabel, "x " + (r.res.factor || 1).toFixed(3).replace(".", ",")]); }
+      rows.push(tot(M2.feeLabel || "Guideline fee", fmt(r.full)));
       table(rows);
-      h4("Work stages included");
-      table(c.stageLines.map((s) => [`${s.partial ? s.name : `Stage ${s.id} · ${s.name}`}${s.adjusted ? " *" : ""}   (${pct(s.pc)})`, fmt(s.amt)]).concat([tot(`Fee for stages included (${pct(c.stagesPct)})`, fmt(c.stageFee))]));
-      if (c.repeat) para(`* ${repeatStagesLabel()} adjusted for repeated buildings: bespoke buildings and prototypes at full fee, each repeat at ${pct(c.repeat.pct)} of the fee for those stages, weighted by value of works. ${F.repeatedBuildings.note}`, 8, grey);
-      if (c.stageLines.some((s) => s.partial)) para(F.partialServiceNote || "", 8, grey);
-    }
-
-    // Hours
-    if (c.time.items.length) {
-      h4(c.timeOnly ? "Time-based fee" : "Additional services, time-based");
-      table(c.time.items.map((l) => [`${l.role}${l.desc ? " · " + l.desc : ""}   (${l.hours} hours × ${fmt0(l.rate)} per hour)`, fmt(l.amount)]).concat([tot("Hourly work", fmt(c.time.total))]));
-      if (!c.timeOnly) para("Clause 18: unless otherwise agreed, the fee for additional services is time-based at the guideline hourly rates.", 8, grey);
-    }
-
-    // Disbursements
+      table(r.stageLines.map((s) => [`${s.partial ? s.name : `Stage ${s.id} · ${s.name}`}${s.adjusted ? " *" : ""}   (${pct(s.pc)})`, fmt(s.amt)]).concat([tot(`Fee for stages included (${pct(r.stagesPct)})`, fmt(r.fee))]));
+      if (r.repeat) para(`* ${repeatStagesLabel(M2)} adjusted for repeated buildings: bespoke buildings and prototypes at full fee, each repeat at ${pct(r.repeat.pct)} of the fee for those stages, weighted by value of works. ${M2.repeatedBuildings.note}`, 8, grey);
+      if (r.stageLines.some((s) => s.partial)) para(M2.partialServiceNote || "", 8, grey);
+    });
     if (c.disb.items.length) {
       h4("Disbursements (estimate)");
       table(c.disb.items.map((dd) => [`${dd.cat}${dd.desc ? " · " + dd.desc : ""}${dd.attendPct ? `   (cost ${fmt(dd.cost)} + ${pct(dd.attendPct)} attendance)` : ""}`, fmt(dd.line)]).concat([tot("Disbursements", fmt(c.disb.total))]));
     }
-
-    // Proposed fee
     h4("Proposed fee");
     const rows = [];
-    if (!c.timeOnly && c.time.total) { rows.push(["Fee on value of works", fmt(c.stageFee)], ["Hourly work", fmt(c.time.total)]); }
-    if (c.discount) rows.push([`Less discount (${pct(Number(p.discount))})`, "- " + fmt(c.discount)]);
+    if (many) { c.lines.forEach((r, i) => rows.push([`${i + 1}. ${r.title}`, fmt(r.fee)])); rows.push(["Fees before discount", fmt(c.before)]); }
+    else { const t = c.lines.find((r) => r.type === "table"), h = c.lines.find((r) => r.type === "hours"); if (t && h && h.fee) { rows.push(["Fee on value of works", fmt(t.fee)], ["Hourly work", fmt(h.fee)]); } }
+    if (c.discount) rows.push([`Less discount (${pct(num(p.discount))})`, "- " + fmt(c.discount)]);
     rows.push((settings.vat || c.disb.items.length ? Array : tot)(`Professional fee${settings.vat ? " (excl. VAT)" : ""}`, fmt(c.fee)));
     if (c.disb.items.length) { rows.push(["Disbursements (estimate)", fmt(c.disb.total)]); rows.push((settings.vat ? Array : tot)(`Fee and disbursements${settings.vat ? " (excl. VAT)" : ""}`, fmt(c.fee + c.disb.total))); }
-    if (settings.vat) { rows.push(sub(`VAT at ${pct(F.vatRate * 100)}`, fmt(c.vat))); rows.push(tot("Total including VAT", fmt(c.total))); }
-    table(rows.map((r) => Array.isArray(r) ? r : r));
+    if (settings.vat) { rows.push(sub(`VAT at ${pct(VAT_RATE * 100)}`, fmt(c.vat))); rows.push(tot("Total including VAT", fmt(c.total))); }
+    table(rows);
     if (p.notes) { h4("Notes"); para(p.notes); }
-
-    para(`Fees are calculated with reference to the guideline for professional fees of the ${F.council}, ${F.notice} (${F.gazette}). ${F.guidelineWording} The fee above is a proposal and is open to negotiation. Where a project cost-based fee applies, the final fee is calculated on the final cost of the works. ${c.disb.items.length ? "Disbursements are estimates and are reimbursed at cost as incurred." : "Disbursements are excluded and will be reimbursed at cost as incurred."}`, 7.5, grey);
-
-    // Acceptance block
-    if (y > 235) { doc.addPage(); y = M; }
-    y += 2;
-    h4("Acceptance");
+    para(closingNote(c), 7.5, grey);
+    if (T.st.y > 235) { doc.addPage(); T.st.y = M; }
+    T.st.y += 2; h4("Acceptance");
     para(`I/we accept this fee proposal and appoint ${settings.firm || "the firm"} on the terms set out above.`, 9.5);
-    y += 8;
+    T.st.y += 8;
     const colW = (CW - 12) / 3;
     ["Name", "Signature", "Date"].forEach((lbl, i) => {
       const x0 = M + i * (colW + 6);
-      doc.setDrawColor(...ink).setLineWidth(0.3).line(x0, y, x0 + colW, y);
-      doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...grey).text(lbl, x0, y + 4);
+      doc.setDrawColor(...ink).setLineWidth(0.3).line(x0, T.st.y, x0 + colW, T.st.y);
+      doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...grey).text(lbl, x0, T.st.y + 4);
     });
-
     pdfFooter(doc, `${settings.firm || "Fee proposal"} · ${p.name || ""}`);
     return doc;
   }
-  $("shareBtn").onclick = async () => {
-    toast("Preparing PDF…");
-    const doc = await buildPdf(); if (!doc) return;
-    await sharePdf(doc, pdfName(), "Fee proposal: " + (current.name || "project"));
-  };
+  $("shareBtn").onclick = async () => { toast("Preparing PDF…"); const doc = await buildPdf(); if (doc) await sharePdf(doc, pdfName(), "Fee proposal: " + (current.name || "project")); };
   $("pdfBtn").onclick = async () => { const doc = await buildPdf(); if (doc) doc.save(pdfName()); };
 
   // ---------- invoice PDF ----------
   function nextInvoiceNumber() {
-    const n = Math.max(1, Math.floor(Number(settings.invNext) || 1));
+    const n = Math.max(1, Math.floor(num(settings.invNext) || 1));
     settings.invNext = n + 1; save(LS_SETTINGS, settings);
     return (settings.invPrefix || "") + String(n).padStart(4, "0");
   }
@@ -1307,21 +1638,18 @@
     const W = PDF.W, M = PDF.M, CW = W - 2 * M, grey = PDF.grey, ink = PDF.ink;
     const isTax = !!settings.vat;
     let y = await pdfHeader(doc);
-
     doc.setFont("helvetica", "bold").setFontSize(16).setTextColor(...ink).text(isTax ? "TAX INVOICE" : "INVOICE", M, y + 1);
     const right = (label, val, yy) => { doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...grey).text(label, W - M - 62, yy); doc.setFont("helvetica", "bold").setTextColor(...ink).text(String(val), W - M, yy, { align: "right" }); };
     right("Invoice number", inv.number || "", y);
     right("Date", fmtDate(inv.date) || fmtDate(todayIso()), y + 5);
     if (isTax && settings.vatNo) right("VAT registration no.", settings.vatNo, y + 10);
     y += 20;
-
     doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...grey).text("INVOICE TO", M, y); y += 5;
     doc.setFont("helvetica", "normal").setFontSize(10.5).setTextColor(...ink).text(p.client || "Client", M, y); y += 5;
     if (p.email) { doc.setFontSize(9).setTextColor(...grey).text(p.email, M, y); y += 5; }
     doc.setFontSize(9).setTextColor(...grey).text("Project: " + (p.name || ""), M, y); y += 9;
-
-    const total = Number(inv.amount) || 0;
-    const excl = isTax ? total / (1 + F.vatRate) : total, vat = total - excl;
+    const total = num(inv.amount) || 0;
+    const excl = isTax ? total / (1 + VAT_RATE) : total, vat = total - excl;
     const base = { margin: { left: M, right: M }, theme: "plain", styles: { font: "helvetica", fontSize: 9.5, textColor: ink, cellPadding: { top: 2, bottom: 2, left: 0, right: 0 }, lineColor: [229, 231, 235], lineWidth: { bottom: 0.2 } } };
     doc.autoTable(Object.assign({}, base, {
       startY: y, head: [["Description", isTax ? "Amount (excl. VAT)" : "Amount"]],
@@ -1331,15 +1659,14 @@
       didParseCell: (dd) => { if (dd.section === "head" && dd.column.index === 1) dd.cell.styles.halign = "right"; }
     }));
     y = doc.lastAutoTable.finalY + 2;
-    const totRows = isTax ? [["Subtotal (excl. VAT)", fmt(excl)], [`VAT at ${pct(F.vatRate * 100)}`, fmt(vat)], ["TOTAL DUE", fmt(total)]] : [["TOTAL DUE", fmt(total)]];
+    const totRows = isTax ? [["Subtotal (excl. VAT)", fmt(excl)], [`VAT at ${pct(VAT_RATE * 100)}`, fmt(vat)], ["TOTAL DUE", fmt(total)]] : [["TOTAL DUE", fmt(total)]];
     doc.autoTable(Object.assign({}, base, {
       startY: y, margin: { left: M + CW * 0.45, right: M }, body: totRows,
       columnStyles: { 0: { cellWidth: "auto" }, 1: { halign: "right", cellWidth: 42 } },
       didParseCell: (dd) => { if (dd.row.index === totRows.length - 1) { dd.cell.styles.fontStyle = "bold"; dd.cell.styles.fontSize = 11.5; dd.cell.styles.lineWidth = { top: 0.5, bottom: 0 }; dd.cell.styles.lineColor = ink; } }
     }));
     y = doc.lastAutoTable.finalY + 10;
-
-    if (inv.paid) { doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(22, 101, 52).text(`PAID  ·  ${fmt(Number(inv.paidAmount) || 0)} received ${inv.paidDate ? "on " + fmtDate(inv.paidDate) : ""}`, M, y); y += 9; }
+    if (inv.paid) { doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(22, 101, 52).text(`PAID  ·  ${fmt(num(inv.paidAmount) || 0)} received ${inv.paidDate ? "on " + fmtDate(inv.paidDate) : ""}`, M, y); y += 9; }
     const block = (title, text) => {
       doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(...grey).text(title, M, y); y += 4.5;
       const lines = doc.splitTextToSize(text, CW);
@@ -1352,37 +1679,130 @@
     return doc;
   }
 
-  // ---------- settings ----------
+  // ===================================================================================
+  // Invoices and payments (amounts as on the invoice: including VAT when registered)
+  // ===================================================================================
+  function invoiceInfo(p, c) {
+    const feeIncl = c.total;
+    const invoiced = (p.invoices || []).reduce((s, i) => s + (num(i.amount) || 0), 0);
+    const paid = (p.invoices || []).reduce((s, i) => s + (i.paid ? (num(i.paidAmount) || 0) : 0), 0);
+    return { feeIncl, invoiced, paid, outstanding: invoiced - paid, toInvoice: feeIncl - invoiced };
+  }
+  function renderInvoices() {
+    const p = current, c = calc(p), inv = invoiceInfo(p, c);
+    $("invOutstanding").textContent = fmt0(inv.outstanding);
+    $("invSub").textContent = inv.invoiced ? `${fmt0(inv.paid)} received of ${fmt0(inv.invoiced)} invoiced` : "Nothing invoiced yet";
+    $("invSummary").innerHTML = `
+      <tr><td>Proposed fee${settings.vat ? " incl. VAT" : ""}${c.disb.items.length ? " and disbursements" : ""}</td><td>${fmt(inv.feeIncl)}</td></tr>
+      <tr><td>Invoiced to date</td><td>${fmt(inv.invoiced)}</td></tr>
+      <tr><td>Paid to date</td><td>${fmt(inv.paid)}</td></tr>
+      <tr class="tot"><td>Outstanding (invoiced, not yet paid)</td><td>${fmt(inv.outstanding)}</td></tr>
+      <tr><td>Still to invoice</td><td>${fmt(inv.toInvoice)}</td></tr>`;
+    $("invVatNote").textContent = settings.vat ? "Invoice and payment amounts include VAT, as on the invoice." : "Amounts exclude VAT (firm not registered).";
+    const ul = $("invList"); ul.innerHTML = "";
+    p.invoices.forEach((i, idx) => {
+      const li = document.createElement("li"); li.className = i.paid ? "paid" : "";
+      li.innerHTML = `<div class="row"><input type="text" class="num" placeholder="Invoice no." style="flex:1"><input type="date" class="date" style="flex:1.4"></div>
+        <div class="row"><input type="text" class="desc" placeholder="Description, e.g. Stage 3 · Design development"></div>
+        <div class="row" style="align-items:center"><input type="text" class="money amt" inputmode="decimal" placeholder="Amount R${settings.vat ? " incl. VAT" : ""}"><label style="margin:0;display:flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap"><input type="checkbox" class="pd" style="width:18px;height:18px;accent-color:var(--ok)"> Paid</label></div>
+        <div class="row pdRow" style="align-items:center"><small>Received</small><input type="date" class="pdate" style="flex:1.4"><input type="text" class="money pamt" inputmode="decimal" placeholder="Amount received" style="flex:1"></div>
+        <div class="row" style="align-items:center;justify-content:space-between"><span class="pill"></span><span><button class="lnk send" type="button">Send PDF</button><button class="lnk dl" type="button">Download</button><button class="rm" type="button">Remove</button></span></div>`;
+      const q = (s) => li.querySelector(s);
+      const numEl = q(".num"), date = q(".date"), desc = q(".desc"), amt = q(".amt"), pd = q(".pd"), pdate = q(".pdate"), pamt = q(".pamt"), pill = q(".pill"), pdRow = q(".pdRow");
+      const ready = () => {
+        if (!(num(i.amount) > 0)) { toast("Enter the invoice amount first"); return false; }
+        if (!i.number) { i.number = nextInvoiceNumber(); numEl.value = i.number; }
+        if (!i.date) { i.date = todayIso(); date.value = i.date; }
+        persistNow(); return true;
+      };
+      q(".send").onclick = async () => { if (!ready()) return; toast("Preparing invoice…"); const doc = await buildInvoicePdf(i); if (doc) await sharePdf(doc, invoiceFileName(i), `${settings.vat ? "Tax invoice" : "Invoice"} ${i.number}`); };
+      q(".dl").onclick = async () => { if (!ready()) return; const doc = await buildInvoicePdf(i); if (doc) doc.save(invoiceFileName(i)); };
+      numEl.value = i.number || ""; date.value = i.date || ""; desc.value = i.desc || ""; amt.value = fmtIn(i.amount); pd.checked = !!i.paid; pdate.value = i.paidDate || ""; pamt.value = fmtIn(i.paidAmount || "");
+      const paint = () => {
+        pdRow.style.display = i.paid ? "" : "none"; li.className = i.paid ? "paid" : "";
+        const a = num(i.amount) || 0, r = i.paid ? num(i.paidAmount) || 0 : 0;
+        pill.className = "pill" + (i.paid && r >= a - 0.005 ? " ok" : "");
+        pill.textContent = !a ? "" : i.paid ? (r >= a - 0.005 ? "Paid" : `Part paid · ${fmt0(a - r)} short`) : "Unpaid";
+      };
+      const upd = () => { i.number = numEl.value; i.date = date.value; i.desc = desc.value; i.amount = amt.value; i.paidDate = pdate.value; i.paidAmount = pamt.value; paint(); persistNow(); renderSummaryOnly(); };
+      [numEl, date, desc, amt, pdate, pamt].forEach((el) => { el.oninput = upd; el.onchange = upd; });
+      pd.onchange = () => { i.paid = pd.checked; if (i.paid) { if (!i.paidDate) { i.paidDate = todayIso(); pdate.value = i.paidDate; } if (!i.paidAmount) { i.paidAmount = i.amount; pamt.value = i.amount; } } upd(); };
+      q(".rm").onclick = () => { p.invoices.splice(idx, 1); persistNow(); renderInvoices(); };
+      ul.appendChild(li); paint();
+    });
+  }
+  function renderSummaryOnly() {
+    const c = calc(current), inv = invoiceInfo(current, c);
+    $("invOutstanding").textContent = fmt0(inv.outstanding);
+    $("invSub").textContent = inv.invoiced ? `${fmt0(inv.paid)} received of ${fmt0(inv.invoiced)} invoiced` : "Nothing invoiced yet";
+    const cells = $("invSummary").querySelectorAll("td:last-child");
+    [inv.feeIncl, inv.invoiced, inv.paid, inv.outstanding, inv.toInvoice].forEach((v, k) => { if (cells[k]) cells[k].textContent = fmt(v); });
+  }
+  $("invoicesBtn").onclick = () => { persist(); renderInvoices(); show("invoiceScreen", "Invoices"); };
+  $("invBackBtn").onclick = back;
+  $("addInvBtn").onclick = () => {
+    current.invoices.push({ id: newId(), number: nextInvoiceNumber(), date: todayIso(), desc: "", amount: "", paid: false, paidDate: "", paidAmount: "" });
+    persistNow(); renderInvoices();
+    const last = $("invList").lastElementChild; if (last) last.querySelector(".desc").focus();
+  };
+  // One draft invoice per stage of each table line, one per other line, one for disbursements; rounded to the total.
+  $("planInvBtn").onclick = () => {
+    const c = calc(current);
+    const vatF = settings.vat ? 1 + VAT_RATE : 1;
+    const discF = 1 - (num(current.discount) || 0) / 100;
+    const many = isMulti(current);
+    const lines = [];
+    c.lines.forEach((r, i) => {
+      const prefix = many ? `${r.title} · ` : "";
+      if (r.type === "table" && r.stageLines && r.stageLines.length) r.stageLines.forEach((s) => lines.push({ desc: `${prefix}${s.partial ? s.name : `Stage ${s.id} · ${s.name}`}`, amount: s.amt * discF * vatF }));
+      else if (r.fee > 0) lines.push({ desc: many ? r.title : (r.type === "hours" ? ((current.chargeMode || "none") === "only" ? "Time-based fee" : "Additional services (hourly)") : r.type === "lump" ? "Lump sum" : "Fee"), amount: r.fee * discF * vatF });
+    });
+    if (c.disb.total) lines.push({ desc: "Disbursements", amount: c.disb.total * vatF });
+    if (!lines.length) { toast("Nothing to plan yet: enter the fee first"); return; }
+    const r2 = (v) => Math.round(v * 100) / 100;
+    lines.forEach((l) => { l.amount = r2(l.amount); });
+    const target = r2(c.total), sum = r2(lines.reduce((s, l) => s + l.amount, 0));
+    lines[lines.length - 1].amount = r2(lines[lines.length - 1].amount + (target - sum));
+    lines.forEach((l) => current.invoices.push({ id: newId(), number: "", date: "", desc: l.desc, amount: l.amount.toString(), paid: false, paidDate: "", paidAmount: "" }));
+    persistNow(); renderInvoices(); toast(`${lines.length} planned invoices added`);
+  };
+
+  // ===================================================================================
+  // Settings
+  // ===================================================================================
   function fillSettings() {
     $("sFirm").value = settings.firm; $("sTag").value = settings.tag; $("sContact").value = settings.contact;
-    $("sColour").value = settings.colour || "#1f2a44"; $("sRate").value = settings.rate || ""; $("sValid").value = settings.valid || 30;
+    $("sColour").value = settings.colour || "#1f2a44"; $("sRate").value = fmtIn(settings.rate || ""); $("sValid").value = settings.valid || 30;
     $("sVatNo").value = settings.vatNo || ""; $("sInvPrefix").value = settings.invPrefix || ""; $("sInvNext").value = settings.invNext || 1; $("sTerms").value = settings.terms || ""; $("sBank").value = settings.bank || "";
-    $("sVat").querySelectorAll("button").forEach((b) => b.classList.toggle("on", Number(b.dataset.v) === Number(settings.vat)));
+    $("sVat").querySelectorAll("button").forEach((b) => b.classList.toggle("on", num(b.dataset.v) === num(settings.vat)));
     const img = $("sLogoPreview"); img.style.display = settings.logo ? "" : "none"; if (settings.logo) img.src = settings.logo;
     $("sLogoRemove").style.display = settings.logo ? "" : "none";
   }
   $("sLogoRemove").onclick = () => { settings.logo = ""; $("sLogo").value = ""; fillSettings(); toast("Logo removed; tap Save"); };
-  $("sVat").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; settings.vat = Number(b.dataset.v); $("sVat").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); };
+  $("sVat").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; settings.vat = num(b.dataset.v); $("sVat").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); };
   $("sLogo").onchange = () => {
     const f = $("sLogo").files[0]; if (!f) return;
     if (f.size > 600000) { toast("Please use a logo under 600 KB"); return; }
     const r = new FileReader();
-    r.onload = () => { settings.logo = r.result; const img = $("sLogoPreview"); img.src = r.result; img.style.display = ""; };
+    r.onload = () => { settings.logo = r.result; const img = $("sLogoPreview"); img.src = r.result; img.style.display = ""; $("sLogoRemove").style.display = ""; };
     r.readAsDataURL(f);
   };
   $("saveSettingsBtn").onclick = () => {
     settings.firm = $("sFirm").value.trim(); settings.tag = $("sTag").value.trim(); settings.contact = $("sContact").value.trim();
-    settings.colour = $("sColour").value; settings.rate = Number($("sRate").value) || 0; settings.valid = Number($("sValid").value) || 30;
-    settings.vatNo = $("sVatNo").value.trim(); settings.invPrefix = $("sInvPrefix").value; settings.invNext = Math.max(1, Math.floor(Number($("sInvNext").value) || 1)); settings.terms = $("sTerms").value.trim(); settings.bank = $("sBank").value.trim();
+    settings.colour = $("sColour").value; settings.rate = num($("sRate").value) || 0; settings.valid = num($("sValid").value) || 30;
+    settings.vatNo = $("sVatNo").value.trim(); settings.invPrefix = $("sInvPrefix").value; settings.invNext = Math.max(1, Math.floor(num($("sInvNext").value) || 1)); settings.terms = $("sTerms").value.trim(); settings.bank = $("sBank").value.trim();
     save(LS_SETTINGS, settings); applyColour(); toast("Saved"); back();
   };
   function applyColour() { document.documentElement.style.setProperty("--accent", settings.colour || "#1f2a44"); document.querySelector('meta[name=theme-color]').content = settings.colour || "#1f2a44"; }
 
-  // ---------- misc ----------
+  // ===================================================================================
+  // Misc and start
+  // ===================================================================================
   let toastTimer;
   function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1800); }
 
   applyColour();
+  F = MODULES.sacap || Object.values(MODULES)[0];
   projects.forEach(migrate);
   renderDoor();
   show("doorScreen", "Professional Fees", false);
