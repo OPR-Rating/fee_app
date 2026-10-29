@@ -72,27 +72,34 @@
     elec_bld: { label: "Electrical engineering · building project (Table 8)",    brackets: BUILDING_MECH_ELEC, stages: "me" },
     mgmt:     { label: "Engineering management / principal consultant (Table 10)", brackets: MANAGEMENT,     stages: "mgmt" }
   };
-  // Typical factors (Tables 2A, 3A, 4A, 5A, 6A, 7A, 8A, 11A). The gazette multiplies them together
-  // when more than one applies. Ranges are shown at their lower value; edit by agreement.
+  // Typical factors. Each fee table has its own factor table in the gazette (2A for Table 1, 3A for
+  // Table 3, 4A for Table 4, 5A, 6A, 7A, 8A, and 11A for Table 10), so each factor lists the tables it
+  // belongs to. The gazette multiplies them together when more than one applies. Ranges are shown at
+  // their lower value; edit by agreement. Duplication of works (0.25) is handled by the repeated-units
+  // rule, not here.
+  const ENG = ["civ_eng", "str_eng"], BLD_CS = ["civ_bld", "str_bld"], ME_ENG = ["mech_eng", "elec_eng"], ME_BLD = ["mech_bld", "elec_bld"];
   const FACTORS = [
-    { id: "alter",     label: "Alterations to existing works (portion affected)", factor: 1.25 },
-    { id: "tenant",    label: "Multi-tenant installations (building M&E)",         factor: 1.25 },
-    { id: "wet",       label: "Water supply, drainage and fire water systems",      factor: 1.25 },
-    { id: "wwtw",      label: "Water and wastewater treatment works",               factor: 1.25 },
-    { id: "ruralws",   label: "Water and sanitation in rural areas",                factor: 1.35 },
-    { id: "informal",  label: "Services for informal settlements (1.25 to 1.50)",   factor: 1.25 },
-    { id: "rd_flat",   label: "Rural single carriageway, flat terrain",             factor: 0.85 },
-    { id: "fw_flat",   label: "Rural freeway / dual carriageway, flat terrain",     factor: 0.95 },
-    { id: "rd_mtn",    label: "Rural single carriageway, mountainous",              factor: 1.15 },
-    { id: "fw_mtn",    label: "Rural freeway / dual carriageway, mountainous",      factor: 1.25 },
-    { id: "rd_urban",  label: "Single carriageway through urban areas",             factor: 1.15 },
-    { id: "fw_urban",  label: "Freeway / dual carriageway through urban areas",     factor: 1.25 },
-    { id: "rd_rehab",  label: "Road maintenance and rehabilitation",                factor: 1.15 },
-    { id: "rd_upg",    label: "Road upgrading (pavement and/or alignment)",         factor: 1.25 },
-    { id: "gravel",    label: "Gravel roads (0.75 to 1.50 by class)",               factor: 1.00 },
-    { id: "mass",      label: "Mass concrete, brickwork, cladding designed by engineer (design portion)", factor: 0.33 },
-    { id: "finadmin",  label: "Financial administration done by the QS or others (cost > R1m)", factor: 0.85 }
+    { id: "alter",     label: "Alterations to existing works (portion affected)", factor: 1.25, tables: ENG.concat(BLD_CS, ME_ENG, ME_BLD, ["mgmt"]) },
+    { id: "tenant",    label: "Multi-tenant installations",                       factor: 1.25, tables: ME_BLD.concat(["mgmt"]) },
+    { id: "wet",       label: "Water supply, drainage and fire water systems",    factor: 1.25, tables: ["mech_eng"].concat(ME_BLD) },
+    { id: "intwater",  label: "Internal water and drainage for buildings (by specific agreement)", factor: 1.25, tables: ["civ_bld"] },
+    { id: "wwtw",      label: "Water and wastewater treatment works",             factor: 1.25, tables: ENG },
+    { id: "ruralws",   label: "Water and sanitation in rural areas",              factor: 1.35, tables: ENG },
+    { id: "informal",  label: "Services for informal settlements (1.25 to 1.50)", factor: 1.25, tables: ENG },
+    { id: "rd_flat",   label: "Rural single carriageway, flat terrain",           factor: 0.85, tables: ENG },
+    { id: "fw_flat",   label: "Rural freeway / dual carriageway, flat terrain",   factor: 0.95, tables: ENG },
+    { id: "rd_mtn",    label: "Rural single carriageway, mountainous",            factor: 1.15, tables: ENG },
+    { id: "fw_mtn",    label: "Rural freeway / dual carriageway, mountainous",    factor: 1.25, tables: ENG },
+    { id: "periurban", label: "Roads through existing peri-urban areas",          factor: 1.00, tables: ENG },
+    { id: "rd_urban",  label: "Single carriageway through urban areas",           factor: 1.15, tables: ENG },
+    { id: "fw_urban",  label: "Freeway / dual carriageway through urban areas",   factor: 1.25, tables: ENG },
+    { id: "rd_rehab",  label: "Road maintenance and rehabilitation",              factor: 1.15, tables: ENG },
+    { id: "rd_upg",    label: "Road upgrading (pavement and/or alignment)",       factor: 1.25, tables: ENG },
+    { id: "gravel",    label: "Gravel roads (0.75 to 1.50 by class)",             factor: 1.00, tables: ENG },
+    { id: "mass",      label: "Mass concrete, brickwork, cladding designed by the engineer (design portion)", factor: 0.33, tables: BLD_CS },
+    { id: "finadmin",  label: "Financial administration done by the QS or others (cost > R1m)", factor: 0.85, tables: ME_BLD }
   ];
+  const factorsFor = (sel) => FACTORS.filter((f) => f.tables.includes(sel.table || "civ_bld"));
 
   window.FEE_MODULES = window.FEE_MODULES || {};
   window.FEE_MODULES.ecsa = {
@@ -112,12 +119,13 @@
     selectors: [
       { id: "table", type: "select", label: "Discipline and project type", default: "civ_bld",
         options: Object.keys(TABLES).map((k) => ({ id: k, label: TABLES[k].label })) },
-      { id: "factors", type: "multi", label: "Typical factors that apply (multiplied together)", default: [],
-        options: FACTORS.map((f) => ({ id: f.id, label: `${f.label} × ${f.factor.toFixed(2)}` })) }
+      { id: "factors", type: "multi", label: "Typical factors for this table (multiplied together)", default: [],
+        options: (sel) => factorsFor(sel).map((f) => ({ id: f.id, label: `${f.label} × ${f.factor.toFixed(2)}` })) }
     ],
     resolve(sel) {
       const t = TABLES[sel.table] || TABLES.civ_bld;
-      const chosen = FACTORS.filter((f) => (sel.factors || []).includes(f.id));
+      // Only factors that belong to the chosen table count, even if ticked under another table earlier.
+      const chosen = factorsFor(sel).filter((f) => (sel.factors || []).includes(f.id));
       const factor = chosen.reduce((a, f) => a * f.factor, 1);
       return {
         brackets: t.brackets,
