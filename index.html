@@ -421,9 +421,12 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="fees-2026.js?v=20261029c"></script>
-<script src="fees-ecsa-2025.js?v=20261029b"></script>
-<script src="fees-sacqsp-2024.js?v=20261029c"></script>
+<script src="fees-2026.js?v=20261029e"></script>
+<script src="fees-ecsa-2025.js?v=20261029e"></script>
+<script src="fees-sacqsp-2024.js?v=20261029e"></script>
+<script src="fees-sacpcmp-2019.js?v=20261029e"></script>
+<script src="fees-saclap-2013.js?v=20261029e"></script>
+<script src="fees-sacpvp-2010.js?v=20261029e"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
@@ -559,7 +562,7 @@
       li.innerHTML = `<div class="t"><b></b><span></span></div><div class="fee"></div>`;
       li.querySelector("b").textContent = p.name || "Untitled";
       const inv = invoiceInfo(p, c);
-      li.querySelector("span").innerHTML = esc((p.client ? p.client + " · " : "") + new Date(p.updated).toLocaleDateString("en-ZA") + (isMulti(p) && p.lines.length > 1 ? ` · ${p.lines.length} disciplines` : "")) + (inv.outstanding > 0.005 ? ` · <span class="due">${fmt0(inv.outstanding)} outstanding</span>` : "");
+      li.querySelector("span").innerHTML = esc((p.client ? p.client + " · " : "") + new Date(p.updated).toLocaleDateString("en-ZA") + (isMulti(p) && p.lines.filter((l) => l.on).length ? ` · ${p.lines.filter((l) => l.on).length} included` : "")) + (inv.outstanding > 0.005 ? ` · <span class="due">${fmt0(inv.outstanding)} outstanding</span>` : "");
       li.querySelector(".fee").textContent = fmt0(c.fee);
       li.onclick = () => { current = p; fillEdit(); show("editScreen", p.name || "Proposal"); };
       ul.appendChild(li);
@@ -603,7 +606,13 @@
   function lineTitle(l) {
     if (l.label) return l.label;
     const M = lineModule(l);
-    if (l.key) { const d = MULTI_DISC.find((x) => x.key === l.key); if (d) return d.name; }
+    if (l.key) {
+      const d = MULTI_DISC.find((x) => x.key === l.key);
+      if (d) {
+        const same = current && current.lines ? current.lines.filter((x) => x.key === l.key) : [];
+        return same.length > 1 ? `${d.name} ${same.indexOf(l) + 1}` : d.name;
+      }
+    }
     if (l.type === "table") return M.discipline;
     if (l.type === "percent") return "Negotiated percentage";
     if (l.type === "lump") return "Negotiated lump sum";
@@ -782,10 +791,11 @@
     const p = current, c = calc(p);
     const tabs = $("discTabs"); tabs.innerHTML = "";
     MULTI_DISC.forEach((d) => {
-      const l = p.lines.find((x) => x.key === d.key); if (!l) return;
+      const ls = p.lines.filter((x) => x.key === d.key); if (!ls.length) return;
+      const onCount = ls.filter((x) => x.on).length;
       const b = document.createElement("button"); b.type = "button";
-      b.className = (l.on ? "inc" : "") + (p.activeTab === d.key ? " active" : "");
-      b.textContent = (l.on ? "✓ " : "") + d.name;
+      b.className = (onCount ? "inc" : "") + (p.activeTab === d.key ? " active" : "");
+      b.textContent = (onCount ? "✓ " : "") + d.name + (onCount > 1 ? ` (${onCount})` : "");
       b.onclick = () => { p.activeTab = d.key; renderMulti(); };
       tabs.appendChild(b);
     });
@@ -793,50 +803,84 @@
     $("discSummary").textContent = inc.length ? "Included: " + inc.map((l) => lineTitle(l)).join(", ") + ". Tap a discipline to include it and set it up." : "Tap a discipline, then tick Include. Each one is worked out exactly as on its own tile.";
     const panel = $("discPanel"); panel.innerHTML = "";
     const d = MULTI_DISC.find((x) => x.key === p.activeTab) || MULTI_DISC[0];
-    const l = p.lines.find((x) => x.key === d.key); if (!l) return;
+    const lines = p.lines.filter((x) => x.key === d.key); if (!lines.length) return;
     const M = MODULES[d.module];
-    const box = document.createElement("div"); box.className = "panel"; panel.appendChild(box);
     const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
-    const incLab = el("label", "inc"); incLab.style.margin = "0";
-    const cb = el("input"); cb.type = "checkbox"; cb.checked = !!l.on;
-    cb.onchange = () => { l.on = cb.checked; renderMulti(); recalc(); };
-    incLab.appendChild(cb); incLab.appendChild(document.createTextNode(` Include ${d.name}`));
-    box.appendChild(incLab);
-    box.appendChild(el("p", "hint", esc(`${M.council}, ${M.notice}.`)));
-    if (!l.on) return;
-    box.appendChild(el("h3", "", "Negotiated fee instead of the table (optional)"));
-    const ov = el("input"); ov.type = "text"; ov.className = "money"; ov.inputMode = "decimal"; ov.placeholder = "Agreed fee for this discipline (R)"; ov.value = fmtIn(l.override);
-    ov.oninput = () => { l.override = ov.value; recalc(); paintTabsOnly(); }; box.appendChild(ov);
-    box.appendChild(el("p", "hint", "Leave empty to use the fee table below. Use it for a lump sum, or where the works fall below the table."));
+    lines.forEach((l, idx) => {
+      const box = el("div", "panel"); panel.appendChild(box);
+      if (lines.length > 1) box.appendChild(el("h3", "", esc(`${d.name} ${idx + 1}`)));
+      const incLab = el("label", "inc"); incLab.style.margin = "0";
+      const cb = el("input"); cb.type = "checkbox"; cb.checked = !!l.on;
+      cb.onchange = () => { l.on = cb.checked; renderMulti(); recalc(); };
+      incLab.appendChild(cb); incLab.appendChild(document.createTextNode(` Include ${lines.length > 1 ? d.name + " " + (idx + 1) : d.name}`));
+      box.appendChild(incLab);
+      box.appendChild(el("p", "hint", esc(`${M.council}, ${M.notice}.`)));
+      if (idx > 0) {
+        const rm = el("button", "rm", "Remove this item"); rm.type = "button"; rm.style.cssText = "margin-top:6px";
+        rm.onclick = () => { p.lines = p.lines.filter((x) => x !== l); renderMulti(); recalc(); };
+        box.appendChild(rm);
+      }
+      if (!l.on) return;
+      if (d.own) {
+        box.appendChild(el("h3", "", "What this item covers (optional)"));
+        const lab = el("input"); lab.type = "text"; lab.placeholder = `e.g. Stormwater and roads`; lab.value = l.label || "";
+        lab.oninput = () => { l.label = lab.value; recalc(); }; box.appendChild(lab);
+        box.appendChild(el("p", "hint", "Shown as this item's heading on the proposal."));
+      }
+      box.appendChild(el("h3", "", "Negotiated fee instead of the table (optional)"));
+      const ov = el("input"); ov.type = "text"; ov.className = "money"; ov.inputMode = "decimal"; ov.placeholder = "Agreed fee for this discipline (R)"; ov.value = fmtIn(l.override);
+      ov.oninput = () => { l.override = ov.value; recalc(); paintTabsOnly(); }; box.appendChild(ov);
+      box.appendChild(el("p", "hint", "Leave empty to use the fee table below. Use it for a lump sum, or where the works fall below the table."));
+      if (d.own) {
+        box.appendChild(el("h3", "", `Value of the ${d.own}`));
+        const v = el("input"); v.type = "text"; v.className = "money"; v.inputMode = "decimal"; v.placeholder = `Cost of the ${d.own} (R)`; v.value = fmtIn(l.ownValue);
+        v.oninput = () => { l.ownValue = v.value; recalc(); paintTabsOnly(); }; box.appendChild(v);
+        box.appendChild(el("p", "hint", `The ECSA fee is worked out on the cost of the ${d.own}, not on the whole building. Enter that portion of the value of works.`));
+      } else {
+        box.appendChild(el("p", "hint", "Worked out on the project's value of works above."));
+      }
+      box.appendChild(el("h3", "", "Fee basis"));
+      renderSelectors(l, M, box);
+      box.appendChild(el("p", "hint", esc(M.costOfWorksNote || "")));
+      box.appendChild(el("h3", "", "Work stages included"));
+      syncStages(l);
+      const ul = el("ul", "stages"); ul.dataset.role = "stages"; box.appendChild(ul); renderStages(l, ul);
+      const sumHint = el("p", "hint"); box.appendChild(sumHint);
+      const paintSum = () => { const s = l.stages.reduce((a, st) => a + (num(st.percent) || 0), 0); const on = l.stages.reduce((a, st) => a + (st.on ? num(st.percent) || 0 : 0), 0); sumHint.textContent = `Stage percentages total ${pct(s)} · ${pct(on)} selected`; sumHint.style.color = Math.abs(s - 100) > 0.01 ? "var(--warn)" : ""; };
+      paintSum(); ul.addEventListener("input", paintSum); ul.addEventListener("change", paintSum);
+      if (!d.own && p.mode === "scheme") {
+        box.appendChild(el("h3", "", "Repeated designs"));
+        box.appendChild(el("label", "", esc(`${repeatStagesLabel(M)} on each repeat (% of the fee for those stages)`)));
+        const rp = el("input"); rp.type = "number"; rp.inputMode = "decimal"; rp.min = 0; rp.max = 100; rp.placeholder = M.repeatedBuildings ? M.repeatedBuildings.stages14Percent : 35; rp.value = l.repeatPct;
+        rp.oninput = () => { l.repeatPct = rp.value; recalc(); }; box.appendChild(rp);
+        box.appendChild(el("p", "hint", esc((M.repeatedBuildings && M.repeatedBuildings.note) || "")));
+      }
+      const r = c.lines.find((x) => x.id === l.id);
+      const feeLine = el("p", "hint"); feeLine.style.cssText = "font-weight:600;color:var(--ink);margin-top:12px"; feeLine.dataset.feeFor = l.id;
+      feeLine.textContent = r ? `${lineTitle(l)}: ${fmt0(r.fee)}` : ""; box.appendChild(feeLine);
+    });
+    // Engineering tabs can hold several items (e.g. civil on Table 1 for the roads and on Table 3 for
+    // the building's civils), each with its own table, own value of works and stages.
     if (d.own) {
-      box.appendChild(el("h3", "", `Value of the ${d.own}`));
-      const v = el("input"); v.type = "text"; v.className = "money"; v.inputMode = "decimal"; v.placeholder = `Cost of the ${d.own} (R)`; v.value = fmtIn(l.ownValue);
-      v.oninput = () => { l.ownValue = v.value; recalc(); paintTabsOnly(); }; box.appendChild(v);
-      box.appendChild(el("p", "hint", `The ECSA fee is worked out on the cost of the ${d.own}, not on the whole building. Enter that portion of the value of works.`));
-    } else {
-      box.appendChild(el("p", "hint", "Worked out on the project's value of works above."));
+      const add = el("button", "btn secondary", `+ Add another ${d.name.toLowerCase()} item`); add.type = "button"; add.style.marginTop = "10px";
+      add.onclick = () => {
+        const nl = newLine("table", d.module); nl.key = d.key; nl.on = true; nl.open = false;
+        nl.sel.table = d.table; nl.valueMode = "own"; nl.ownBasis = "value";
+        const last = p.lines.map((x) => x.key).lastIndexOf(d.key);
+        p.lines.splice(last + 1, 0, nl);
+        renderMulti(); recalc();
+      };
+      panel.appendChild(add);
+      panel.appendChild(el("p", "hint", "Use this when one discipline has separate appointments, for example civil engineering on Table 1 for the roads and on Table 3 for the building's civils. Each item is priced on its own value of works."));
     }
-    box.appendChild(el("h3", "", "Fee basis"));
-    renderSelectors(l, M, box);
-    box.appendChild(el("p", "hint", esc(M.costOfWorksNote || "")));
-    box.appendChild(el("h3", "", "Work stages included"));
-    syncStages(l);
-    const ul = el("ul", "stages"); ul.dataset.role = "stages"; box.appendChild(ul); renderStages(l, ul);
-    const sumHint = el("p", "hint"); box.appendChild(sumHint);
-    const paintSum = () => { const s = l.stages.reduce((a, st) => a + (num(st.percent) || 0), 0); const on = l.stages.reduce((a, st) => a + (st.on ? num(st.percent) || 0 : 0), 0); sumHint.textContent = `Stage percentages total ${pct(s)} · ${pct(on)} selected`; sumHint.style.color = Math.abs(s - 100) > 0.01 ? "var(--warn)" : ""; };
-    paintSum(); ul.addEventListener("input", paintSum); ul.addEventListener("change", paintSum);
-    if (!d.own && p.mode === "scheme") {
-      box.appendChild(el("h3", "", "Repeated designs"));
-      box.appendChild(el("label", "", esc(`${repeatStagesLabel(M)} on each repeat (% of the fee for those stages)`)));
-      const rp = el("input"); rp.type = "number"; rp.inputMode = "decimal"; rp.min = 0; rp.max = 100; rp.placeholder = M.repeatedBuildings ? M.repeatedBuildings.stages14Percent : 35; rp.value = l.repeatPct;
-      rp.oninput = () => { l.repeatPct = rp.value; recalc(); }; box.appendChild(rp);
-      box.appendChild(el("p", "hint", esc((M.repeatedBuildings && M.repeatedBuildings.note) || "")));
-    }
-    const r = c.lines.find((x) => x.id === l.id);
-    const feeLine = el("p", "hint"); feeLine.style.cssText = "font-weight:600;color:var(--ink);margin-top:12px"; feeLine.id = "discFee";
-    feeLine.textContent = r ? `${d.name}: ${fmt0(r.fee)}` : ""; box.appendChild(feeLine);
   }
-  function paintTabsOnly() { const p = current, c = calc(p); const d = MULTI_DISC.find((x) => x.key === p.activeTab); const l = d && p.lines.find((x) => x.key === d.key); const r = l && c.lines.find((x) => x.id === l.id); const f = $("discFee"); if (f && d) f.textContent = r ? `${d.name}: ${fmt0(r.fee)}` : ""; }
+  function paintTabsOnly() {
+    const p = current, c = calc(p);
+    p.lines.filter((l) => l.key === p.activeTab).forEach((l) => {
+      const f = document.querySelector(`[data-fee-for="${l.id}"]`); if (!f) return;
+      const r = c.lines.find((x) => x.id === l.id); f.textContent = r ? `${lineTitle(l)}: ${fmt0(r.fee)}` : "";
+    });
+  }
 
   // ---------- the single-discipline screens: one fee-table line and, if wanted, one hours line ----------
   const tableLine = () => current.lines.find((l) => l.type === "table");
