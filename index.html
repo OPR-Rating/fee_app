@@ -430,12 +430,12 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="fees-2026.js?v=20261029f"></script>
-<script src="fees-ecsa-2025.js?v=20261029f"></script>
-<script src="fees-sacqsp-2024.js?v=20261029f"></script>
-<script src="fees-sacpcmp-2019.js?v=20261029f"></script>
-<script src="fees-saclap-2013.js?v=20261029f"></script>
-<script src="fees-sacpvp-2010.js?v=20261029f"></script>
+<script src="fees-2026.js?v=20261029g"></script>
+<script src="fees-ecsa-2025.js?v=20261029g"></script>
+<script src="fees-sacqsp-2024.js?v=20261029g"></script>
+<script src="fees-sacpcmp-2019.js?v=20261029g"></script>
+<script src="fees-saclap-2013.js?v=20261029g"></script>
+<script src="fees-sacpvp-2010.js?v=20261029g"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
@@ -681,7 +681,7 @@
     const factor = comps.reduce((s, c) => s + c.value * c.factor, 0) / total;
     return { pct: pctRepeat, factor, groups: reps, units: reps.reduce((s, c) => s + c.qty, 0), protos: reps.reduce((s, c) => s + c.protos, 0), repeats: reps.reduce((s, c) => s + c.repeats, 0), bespoke: comps.filter((c) => !c.rep) };
   }
-  const lineOwnValue = (l) => (l.ownBasis || "area") === "area" ? (num(l.ownArea) || 0) * (num(l.ownRate) || 0) : (num(l.ownValue) || 0);
+  const lineOwnValue = (l, projectValue) => { const b = l.ownBasis || "area"; return b === "area" ? (num(l.ownArea) || 0) * (num(l.ownRate) || 0) : b === "percent" ? (projectValue || 0) * (num(l.ownPct) || 0) / 100 : (num(l.ownValue) || 0); };
 
   // ===================================================================================
   // The calculation
@@ -711,7 +711,8 @@
     out.ownLabel = (MULTI_DISC.find((x) => x.key === l.key) || {}).own || "";
     // A negotiated fee typed on a discipline tab replaces the table for that discipline.
     if (l.type === "table" && num(l.override) > 0) { out.negotiated = true; out.fee = num(l.override); out.desc = l.overrideDesc || ""; return out; }
-    out.value = own ? lineOwnValue(l) : projectValue;
+    out.value = own ? lineOwnValue(l, projectValue) : projectValue;
+    if (own && l.ownBasis === "percent") out.ownPct = num(l.ownPct) || 0;
     if (l.type === "percent") { out.percent = num(l.percent) || 0; out.fee = out.value * out.percent / 100; out.desc = l.desc || ""; return out; }
     const res = syncStages(l);
     out.summary = res.summary; out.factorLabel = res.factorLabel || ""; out.res = res;
@@ -730,7 +731,8 @@
       if (!st.on) return;
       const pc = num(st.percent) || 0;
       const f = repeat && repIds.includes(String(st.id)) ? repeat.factor : 1;
-      const amt = out.full * pc / 100 * f;
+      const sf = (res.stageFactors || []).reduce((a, x) => x.ids.includes(String(st.id)) ? a * x.factor : a, 1);
+      const amt = out.full * pc / 100 * f * sf;
       stagesPct += pc; stageFee += amt;
       stageLines.push({ id: st.id, name: st.name, pc, amt, adjusted: f !== 1 });
     });
@@ -842,9 +844,25 @@
       box.appendChild(el("p", "hint", "Leave empty to use the fee table below. Use it for a lump sum, or where the works fall below the table."));
       if (d.own) {
         box.appendChild(el("h3", "", `Value of the ${d.own}`));
-        const v = el("input"); v.type = "text"; v.className = "money"; v.inputMode = "decimal"; v.placeholder = `Cost of the ${d.own} (R)`; v.value = fmtIn(l.ownValue);
-        v.oninput = () => { l.ownValue = v.value; recalc(); paintTabsOnly(); }; box.appendChild(v);
-        box.appendChild(el("p", "hint", `The ECSA fee is worked out on the cost of the ${d.own}, not on the whole building. Enter that portion of the value of works.`));
+        // Engineers often take their portion as a percentage of the project value (engineer's feedback, 29 Oct).
+        const seg = el("div", "seg small");
+        [["value", "Amount"], ["percent", "% of project value"]].forEach(([v, t]) => {
+          const b = el("button", (l.ownBasis || "value") === v ? "on" : "", t); b.type = "button";
+          b.onclick = () => { l.ownBasis = v; renderMulti(); recalc(); }; seg.appendChild(b);
+        });
+        box.appendChild(seg);
+        if ((l.ownBasis || "value") === "percent") {
+          const row = el("div", "row");
+          const pc = el("input"); pc.type = "number"; pc.inputMode = "decimal"; pc.min = 0; pc.max = 100; pc.step = 0.5; pc.placeholder = "% of the project value"; pc.value = l.ownPct || "";
+          const shown = el("p", "hint");
+          const paintPct = () => { const v = c.value * (num(l.ownPct) || 0) / 100; shown.textContent = v ? `${pct(num(l.ownPct))} of ${fmt0(c.value)} = ${fmt0(v)}` : (c.value ? "Type the percentage." : "Enter the project's value of works above first."); };
+          pc.oninput = () => { l.ownPct = pc.value; recalc(); paintTabsOnly(); paintPct(); };
+          row.appendChild(pc); box.appendChild(row); box.appendChild(shown); paintPct();
+        } else {
+          const v = el("input"); v.type = "text"; v.className = "money"; v.inputMode = "decimal"; v.placeholder = `Cost of the ${d.own} (R)`; v.value = fmtIn(l.ownValue);
+          v.oninput = () => { l.ownValue = v.value; recalc(); paintTabsOnly(); }; box.appendChild(v);
+        }
+        box.appendChild(el("p", "hint", `The ECSA fee is worked out on the cost of the ${d.own}, not on the whole building. Enter that portion of the value of works as an amount or as a percentage of the project value.`));
       } else {
         box.appendChild(el("p", "hint", "Worked out on the project's value of works above."));
       }
@@ -1392,7 +1410,7 @@
     if (r.type === "hours") return h + `<table>${r.items.map((x) => `<tr><td>${esc(x.role)}${x.desc ? " · " + esc(x.desc) : ""}<br><span class="meta">${x.hours} hours × ${fmt0(x.rate)} per hour</span></td><td>${fmt(x.amount)}</td></tr>`).join("")}<tr class="tot"><td>Hourly work</td><td>${fmt(r.fee)}</td></tr></table>`;
     // table line
     h += (r.summary || []).map((s) => `<p>${esc(s)}</p>`).join("");
-    if (r.ownValue) h += `<p>${r.ownLabel ? "Cost of the " + esc(r.ownLabel) : "Priced on this line's own value of works"}: <b>${fmt0(r.value)}</b></p>`;
+    if (r.ownValue) h += `<p>${r.ownLabel ? "Cost of the " + esc(r.ownLabel) : "Priced on this line's own value of works"}: <b>${fmt0(r.value)}</b>${r.ownPct ? ` (${pct(r.ownPct)} of the value of works)` : ""}</p>`;
     if (r.repeat) h += `<p>Repeated buildings: ${r.repeat.groups.map((g) => `${esc(g.name)}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${r.repeat.bespoke.length ? ` Bespoke at full fee: ${r.repeat.bespoke.map((b) => esc(b.name)).join(", ")}.` : ""}</p>`;
     h += `<p class="meta">${esc(M.costOfWorksNote || "")}</p>`;
     if (r.belowTable) return h + `<p class="note">${esc(M.belowTableNote || "")}</p>`;
@@ -1651,7 +1669,7 @@
       if (r.type === "percent") { table([tot(`${pct(r.percent)} of ${fmt0(r.value)}${r.ownValue ? " (this line's own value)" : ""}${r.desc ? " · " + r.desc : ""}`, fmt(r.fee))]); return; }
       if (r.type === "hours") { table(r.items.map((x) => [`${x.role}${x.desc ? " · " + x.desc : ""}   (${x.hours} hours × ${fmt0(x.rate)} per hour)`, fmt(x.amount)]).concat([tot("Hourly work", fmt(r.fee))])); return; }
       (r.summary || []).forEach((s) => para(s));
-      if (r.ownValue) para(`${r.ownLabel ? "Cost of the " + r.ownLabel : "Priced on this line's own value of works"}: ${fmt0(r.value)}`);
+      if (r.ownValue) para(`${r.ownLabel ? "Cost of the " + r.ownLabel : "Priced on this line's own value of works"}: ${fmt0(r.value)}${r.ownPct ? ` (${pct(r.ownPct)} of the value of works)` : ""}`);
       if (r.repeat) para(`Repeated buildings: ${r.repeat.groups.map((g) => `${g.name}, ${g.qty} units (${g.protos} prototype design${g.protos > 1 ? "s" : ""}, ${g.repeats} repeat${g.repeats > 1 ? "s" : ""})`).join("; ")}.${r.repeat.bespoke.length ? ` Bespoke at full fee: ${r.repeat.bespoke.map((b) => b.name).join(", ")}.` : ""}`);
       para(M2.costOfWorksNote || "", 8, grey);
       if (r.belowTable) { para(M2.belowTableNote || "", 8, grey); return; }

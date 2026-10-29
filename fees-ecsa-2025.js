@@ -78,6 +78,10 @@
   // their lower value; edit by agreement. Duplication of works (0.25) is handled by the repeated-units
   // rule, not here.
   const ENG = ["civ_eng", "str_eng"], BLD_CS = ["civ_bld", "str_bld"], ME_ENG = ["mech_eng", "elec_eng"], ME_BLD = ["mech_bld", "elec_bld"];
+  // "Design portion" factors (mass concrete 0.33, duplication 0.25) apply to the design stages only.
+  // Clause 4.1.5.14: "only to be applied to the design stages of the services"; a structural engineer
+  // (29 Oct) confirmed they do not apply to stage 1. So: stages 2, 3 and 4, never 5 and 6.
+  const DESIGN = ["2", "3", "4"];
   const FACTORS = [
     { id: "alter",     label: "Alterations to existing works (portion affected)", factor: 1.25, tables: ENG.concat(BLD_CS, ME_ENG, ME_BLD, ["mgmt"]) },
     { id: "tenant",    label: "Multi-tenant installations",                       factor: 1.25, tables: ME_BLD.concat(["mgmt"]) },
@@ -96,7 +100,8 @@
     { id: "rd_rehab",  label: "Road maintenance and rehabilitation",              factor: 1.15, tables: ENG },
     { id: "rd_upg",    label: "Road upgrading (pavement and/or alignment)",       factor: 1.25, tables: ENG },
     { id: "gravel",    label: "Gravel roads (0.75 to 1.50 by class)",             factor: 1.00, tables: ENG },
-    { id: "mass",      label: "Mass concrete, brickwork, cladding designed by the engineer (design portion)", factor: 0.33, tables: BLD_CS },
+    { id: "mass",      label: "Mass concrete, brickwork, cladding designed by the engineer (design stages 2 to 4 only)", factor: 0.33, tables: BLD_CS, stages: DESIGN },
+    { id: "dup",       label: "Duplication of works without alteration to the drawings (design stages 2 to 4 only)", factor: 0.25, tables: ENG.concat(BLD_CS, ME_ENG, ME_BLD), stages: DESIGN },
     { id: "finadmin",  label: "Financial administration done by the QS or others (cost > R1m)", factor: 0.85, tables: ME_BLD }
   ];
   const factorsFor = (sel) => FACTORS.filter((f) => f.tables.includes(sel.table || "civ_bld"));
@@ -126,14 +131,17 @@
       const t = TABLES[sel.table] || TABLES.civ_bld;
       // Only factors that belong to the chosen table count, even if ticked under another table earlier.
       const chosen = factorsFor(sel).filter((f) => (sel.factors || []).includes(f.id));
-      const factor = chosen.reduce((a, f) => a * f.factor, 1);
+      const whole = chosen.filter((f) => !f.stages), partial = chosen.filter((f) => f.stages);
+      const factor = whole.reduce((a, f) => a * f.factor, 1);
       return {
         brackets: t.brackets,
         factor,
+        // Factors that apply to some stages only: index.html multiplies those stages' amounts by them.
+        stageFactors: partial.map((f) => ({ ids: f.stages, factor: f.factor, label: f.label })),
         stageKey: t.stages,
         stages: stages(ST[t.stages]),
         summary: [t.label].concat(chosen.map((f) => `${f.label}: × ${f.factor.toFixed(2)}`)),
-        factorLabel: chosen.length ? `Typical factors (${chosen.map((f) => f.factor.toFixed(2)).join(" × ")} = ${factor.toFixed(3)})` : ""
+        factorLabel: whole.length ? `Typical factors (${whole.map((f) => f.factor.toFixed(2)).join(" × ")} = ${factor.toFixed(3)})` : ""
       };
     },
     // Where not all stages are provided, the gazette adds "typically plus 10 percentage points" (clause 4.2.9).
@@ -141,8 +149,8 @@
     partialServiceNote: "Clause 4.2.9: where not all stages are provided, the fee is the sum of the stage points plus typically 10 percentage points.",
     repeatedBuildings: {
       stages14Percent: 25,
-      stageIds: ["1", "2", "3", "4"],
-      note: "Duplication of works (factor 0.25, clause 4.1.5.14): applies to the design stages 1 to 4 of complete units repeated without alteration to the drawings; stages 5 and 6 at full fee."
+      stageIds: ["2", "3", "4"],
+      note: "Duplication of works (factor 0.25, clause 4.1.5.14): applies to the design stages 2 to 4 of complete units repeated without alteration to the drawings; stages 1, 5 and 6 at full fee."
     },
     disbursementAttendancePercent: 10,
     disbursementNote: "Clause 4.5.1: expenses and costs incurred on behalf of the client are recovered plus a mark-up of 10%. Set the percentage to 0 to charge cost only.",
