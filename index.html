@@ -430,12 +430,12 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="fees-2026.js?v=20261029g"></script>
-<script src="fees-ecsa-2025.js?v=20261029g"></script>
-<script src="fees-sacqsp-2024.js?v=20261029g"></script>
-<script src="fees-sacpcmp-2019.js?v=20261029g"></script>
-<script src="fees-saclap-2013.js?v=20261029g"></script>
-<script src="fees-sacpvp-2010.js?v=20261029g"></script>
+<script src="fees-2026.js?v=20261029h"></script>
+<script src="fees-ecsa-2025.js?v=20261029h"></script>
+<script src="fees-sacqsp-2024.js?v=20261029h"></script>
+<script src="fees-sacpcmp-2019.js?v=20261029h"></script>
+<script src="fees-saclap-2013.js?v=20261029h"></script>
+<script src="fees-sacpvp-2010.js?v=20261029h"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
@@ -1875,13 +1875,15 @@
   // ---------- staff (council rate per staff type, and what each person costs the firm) ----------
   // The category list comes from the module of the discipline chosen on the front door, or the first
   // module that has a cents-per-R100 formula (ECSA, SACLAP, SACQSP). SACAP has fixed rates: type them.
-  function staffFormulaModule() { if (F && F.hourlyFormula) return F; return DISCIPLINES.map((d) => MODULES[d.module || d.id]).find((m) => m && m.hourlyFormula) || null; }
+  // Only the council of the tile you came in through; a council without an annual-cost rule
+  // (SACPCMP, SACPVP) gets "own rate" only, never another council's categories.
+  function staffFormulaModule() { return F && F.hourlyFormula ? F : null; }
   const formulaRate = (cents, annual) => Math.ceil((num(annual) || 0) / 100) * cents / 100;   // "each R100 or part thereof"
   function renderStaff() {
     const ul = $("staffList"); ul.innerHTML = "";
     const M = staffFormulaModule(); const cats = M ? M.hourlyFormula.categories : [];
     const hrs = num(settings.hoursYear) || 1760;
-    $("staffHint").textContent = M ? `Guideline rate per hour from ${M.council.replace(/ \(.*\)$/, "")}: cents per hour for each R100 of ${M.hourlyFormula.basis}. Pick a category and type the annual cost, or choose Own rate.` : "Type each person's rate per hour.";
+    $("staffHint").textContent = M ? `Guideline rate per hour from ${M.council.replace(/ \(.*\)$/, "")}: cents per hour for each R100 of ${M.hourlyFormula.basis}. Pick a category and type the annual cost, or choose Own rate.` : (F ? `${F.council.replace(/ \(.*\)$/, "")} publishes no rule for working a rate out from salary: type each person's rate per hour.` : "Open a discipline tile first to get its council's staff categories, or type each person's rate per hour.");
     (settings.staff || []).forEach((st, i) => {
       const li = document.createElement("li"); li.style.display = "block";
       li.innerHTML = `<div class="row"><input type="text" class="nm" placeholder="Name"><select class="cat"><option value="">Own rate</option>${cats.map((c) => `<option value="${c.id}">${esc(c.label)} · ${c.cents}c</option>`).join("")}</select></div>

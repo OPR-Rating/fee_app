@@ -119,7 +119,22 @@ window.SACAP_FEES = {
       factorLabel: ""
     };
   },
-  hourlyNote: "SACAP guideline hourly rates (Table 4, Method 2), excluding VAT. Change a rate if yours differs.",
+  hourlyNote: "SACAP guideline hourly rates (Table 4, Method 2), excluding VAT. Method 1 works the rate out from the person's total annual cost of employment ('From annual cost' or a staff member from Settings). Change a rate if yours differs.",
+  // Table 4, Method 1: percentage per R100 (or part) of the person's total annual cost of employment.
+  // The gazette's own example (page 5): principal over 10 years on R960 000 a year → 9 600 × 20c = R1 920 per hour;
+  // registered professional (2b) on R480 000 → R792; support staff (2d) on R180 000 → R225.
+  hourlyFormula: {
+    basis: "total annual cost of employment",
+    categories: [
+      { id: "p_spec",  label: "Principal: specialist",                          cents: 22.5 },
+      { id: "p_10",    label: "Principal: more than 10 years",                  cents: 20 },
+      { id: "p_lt10",  label: "Principal: less than 10 years",                  cents: 18.5 },
+      { id: "assoc",   label: "Associates and managers",                        cents: 17.5 },
+      { id: "reg_dir", label: "Registered professional, direct responsibility", cents: 16.5 },
+      { id: "reg_und", label: "Registered professional, under direction",       cents: 15 },
+      { id: "support", label: "Support staff",                                  cents: 12.5 }
+    ]
+  },
   disbursementNote: "Reimbursed at cost. The gazette allows a minimum of 10% on top for attendance where the fee is project cost-based. Set it to 0 to charge cost only.",
 
   // Clause 23, gazette page 21: repeated buildings under one contract, one client, one site or
