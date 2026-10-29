@@ -114,6 +114,15 @@
       { role: "Staff with direct responsibility for an activity", rate: 530 },
       { role: "Other staff under direction", rate: 260 }
     ],
-    hourlyNote: "SACLAP time-based guideline rates, Board Notice 47 of 2013, excluding VAT. Associates, staff and other staff may instead be charged at 17,5c / 15c / 12,5c per hour for each R100 of total annual cost of employment. Change a rate if yours differs."
+    // Board Notice 47 of 2013: the three staff rows may instead be charged per R100 of total annual cost of employment.
+    hourlyFormula: {
+      basis: "total annual cost of employment",
+      categories: [
+        { id: "assoc", label: "Associates and managers", cents: 17.5 },
+        { id: "staff", label: "Staff with direct responsibility for an activity", cents: 15 },
+        { id: "other", label: "Other staff under direction", cents: 12.5 }
+      ]
+    },
+    hourlyNote: "SACLAP time-based guideline rates, Board Notice 47 of 2013, excluding VAT. Associates, staff and other staff may instead be charged at 17,5c / 15c / 12,5c per hour for each R100 of total annual cost of employment ('From annual cost'). Change a rate if yours differs."
   };
 })();

@@ -416,17 +416,26 @@
       <label>Banking details (printed on every invoice)</label>
       <textarea id="sBank" rows="3" placeholder="Bank · Account name · Account number · Branch code · Reference: invoice number"></textarea>
     </div>
+    <div class="card">
+      <h2>Staff</h2>
+      <p class="hint" id="staffHint"></p>
+      <ul class="stages" id="staffList" style="display:block"></ul>
+      <button class="btn secondary" id="addStaffBtn" type="button">+ Add a person</button>
+      <label>Chargeable hours per person per year</label>
+      <input type="number" id="sHoursYear" inputmode="numeric" placeholder="1 760">
+      <p class="hint">Used only to show what a person costs the firm per hour (annual cost ÷ chargeable hours). 1 760 is 220 working days of 8 hours; a realistic figure for billable time is lower.</p>
+    </div>
     <button class="btn" id="saveSettingsBtn">Save</button>
   </section>
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="fees-2026.js?v=20261029e"></script>
-<script src="fees-ecsa-2025.js?v=20261029e"></script>
-<script src="fees-sacqsp-2024.js?v=20261029e"></script>
-<script src="fees-sacpcmp-2019.js?v=20261029e"></script>
-<script src="fees-saclap-2013.js?v=20261029e"></script>
-<script src="fees-sacpvp-2010.js?v=20261029e"></script>
+<script src="fees-2026.js?v=20261029f"></script>
+<script src="fees-ecsa-2025.js?v=20261029f"></script>
+<script src="fees-sacqsp-2024.js?v=20261029f"></script>
+<script src="fees-sacpcmp-2019.js?v=20261029f"></script>
+<script src="fees-saclap-2013.js?v=20261029f"></script>
+<script src="fees-sacpvp-2010.js?v=20261029f"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
@@ -1240,24 +1249,46 @@
   function renderHourRows(l, ul, M) {
     ul.innerHTML = "";
     const rates = (M && M.hourlyRates) || [];
-    const opts = rates.map((r) => `<option value="${esc(r.role)}">${esc(r.role)} · R${r.rate}/h</option>`).join("") + `<option value="Other">Other (own rate)</option>`;
+    const staff = settings.staff || [];
+    const fx = M && M.hourlyFormula; const cats = fx ? fx.categories : [];
+    const opts = (staff.length ? `<optgroup label="Your staff (Settings)">` + staff.map((st) => `<option value="staff:${st.id}">${esc(st.name)} · R${Math.round(num(st.rate) || 0)}/h</option>`).join("") + `</optgroup>` : "")
+      + (rates.length ? `<optgroup label="Council guideline rates">` + rates.map((r) => `<option value="${esc(r.role)}">${esc(r.role)} · R${r.rate}/h</option>`).join("") + `</optgroup>` : "")
+      + (fx ? `<option value="formula">From annual cost of employment (council formula)</option>` : "")
+      + `<option value="Other">Other (own rate)</option>`;
     l.hours.forEach((h, i) => {
       const li = document.createElement("li");
       li.innerHTML = `<select class="role">${opts}</select>
+        <div class="row fx" style="display:none"><select class="cat">${cats.map((c) => `<option value="${c.id}">${esc(c.label)} · ${c.cents}c per R100</option>`).join("")}</select></div>
+        <div class="row fx" style="display:none"><input type="text" class="money annual" inputmode="decimal" placeholder="Annual cost of employment R"></div>
         <div class="row"><input type="text" class="money rate" inputmode="decimal" placeholder="Rate R/hour"><input type="number" class="hours" inputmode="decimal" placeholder="Hours"></div>
         <div class="row"><input type="text" class="desc" placeholder="What the hours are for (optional)"></div>
         <div class="row" style="align-items:center;justify-content:space-between"><small class="val"></small><button class="rm" type="button">Remove</button></div>`;
       const q = (s) => li.querySelector(s);
-      const role = q(".role"), rate = q(".rate"), hours = q(".hours"), desc = q(".desc"), val = q(".val");
-      role.value = h.role; if (role.value !== h.role) role.value = "Other";
+      const role = q(".role"), cat = q(".cat"), annual = q(".annual"), rate = q(".rate"), hours = q(".hours"), desc = q(".desc"), val = q(".val");
+      const fxRows = li.querySelectorAll(".fx");
+      // Which option represents this row: a staff member, a council preset, the formula, or own rate
+      if (h.staff && staff.find((st) => st.id === h.staff)) role.value = "staff:" + h.staff;
+      else if (h.cat && fx) role.value = "formula";
+      else { role.value = h.role; if (role.value !== h.role) role.value = "Other"; }
+      cat.value = h.cat || (cats[0] ? cats[0].id : ""); annual.value = fmtIn(h.annual || "");
       rate.value = fmtIn(h.rate); hours.value = h.hours; desc.value = h.desc || "";
+      const showFx = () => { const on = role.value === "formula"; fxRows.forEach((r) => { r.style.display = on ? "" : "none"; }); rate.readOnly = on && num(h.annual) > 0; };
       const paint = () => { const a = (num(h.rate) || 0) * (num(h.hours) || 0); val.textContent = a ? `${h.hours} h × ${fmt0(num(h.rate))} = ${fmt0(a)}` : ""; };
-      role.onchange = () => { h.role = role.value; const g = rates.find((r) => r.role === role.value); if (g) { h.rate = g.rate; rate.value = g.rate; } paint(); recalcLineHead(l); };
+      const applyFormula = () => { const c = cats.find((x) => x.id === h.cat); if (c && num(h.annual) > 0) { h.rate = formulaRate(c.cents, h.annual); rate.value = fmtIn(h.rate); } };
+      role.onchange = () => {
+        const v = role.value;
+        if (v.startsWith("staff:")) { const st = staff.find((x) => x.id === v.slice(6)); h.staff = st.id; h.role = st.name; h.cat = ""; h.rate = num(st.rate) || 0; rate.value = fmtIn(h.rate); }
+        else if (v === "formula") { h.staff = ""; h.cat = cat.value || (cats[0] ? cats[0].id : ""); const c = cats.find((x) => x.id === h.cat); h.role = c ? c.label : "From annual cost"; applyFormula(); }
+        else { h.staff = ""; h.cat = ""; h.role = v; const g = rates.find((r) => r.role === v); if (g) { h.rate = g.rate; rate.value = g.rate; } }
+        showFx(); paint(); recalcLineHead(l);
+      };
+      cat.onchange = () => { h.cat = cat.value; const c = cats.find((x) => x.id === h.cat); h.role = c ? c.label : h.role; applyFormula(); showFx(); paint(); recalcLineHead(l); };
+      annual.oninput = () => { h.annual = annual.value; applyFormula(); showFx(); paint(); recalcLineHead(l); };
       rate.oninput = () => { h.rate = rate.value; paint(); recalcLineHead(l); };
       hours.oninput = () => { h.hours = hours.value; paint(); recalcLineHead(l); };
       desc.oninput = () => { h.desc = desc.value; recalcLineHead(l); };
       q(".rm").onclick = () => { l.hours.splice(i, 1); renderHourRows(l, ul, M); recalcLineHead(l); };
-      ul.appendChild(li); paint();
+      ul.appendChild(li); showFx(); paint();
     });
   }
 
@@ -1821,7 +1852,42 @@
     $("sVat").querySelectorAll("button").forEach((b) => b.classList.toggle("on", num(b.dataset.v) === num(settings.vat)));
     const img = $("sLogoPreview"); img.style.display = settings.logo ? "" : "none"; if (settings.logo) img.src = settings.logo;
     $("sLogoRemove").style.display = settings.logo ? "" : "none";
+    $("sHoursYear").value = settings.hoursYear || 1760; settings.staff = settings.staff || []; renderStaff();
   }
+  // ---------- staff (council rate per staff type, and what each person costs the firm) ----------
+  // The category list comes from the module of the discipline chosen on the front door, or the first
+  // module that has a cents-per-R100 formula (ECSA, SACLAP, SACQSP). SACAP has fixed rates: type them.
+  function staffFormulaModule() { if (F && F.hourlyFormula) return F; return DISCIPLINES.map((d) => MODULES[d.module || d.id]).find((m) => m && m.hourlyFormula) || null; }
+  const formulaRate = (cents, annual) => Math.ceil((num(annual) || 0) / 100) * cents / 100;   // "each R100 or part thereof"
+  function renderStaff() {
+    const ul = $("staffList"); ul.innerHTML = "";
+    const M = staffFormulaModule(); const cats = M ? M.hourlyFormula.categories : [];
+    const hrs = num(settings.hoursYear) || 1760;
+    $("staffHint").textContent = M ? `Guideline rate per hour from ${M.council.replace(/ \(.*\)$/, "")}: cents per hour for each R100 of ${M.hourlyFormula.basis}. Pick a category and type the annual cost, or choose Own rate.` : "Type each person's rate per hour.";
+    (settings.staff || []).forEach((st, i) => {
+      const li = document.createElement("li"); li.style.display = "block";
+      li.innerHTML = `<div class="row"><input type="text" class="nm" placeholder="Name"><select class="cat"><option value="">Own rate</option>${cats.map((c) => `<option value="${c.id}">${esc(c.label)} · ${c.cents}c</option>`).join("")}</select></div>
+        <div class="row"><input type="text" class="money annual" inputmode="decimal" placeholder="Annual cost of employment R"><input type="text" class="money rate" inputmode="decimal" placeholder="Rate R/hour"></div>
+        <div class="row" style="align-items:center;justify-content:space-between"><small class="val"></small><button class="rm" type="button">Remove</button></div>`;
+      const q = (x) => li.querySelector(x); const nm = q(".nm"), cat = q(".cat"), annual = q(".annual"), rate = q(".rate"), val = q(".val");
+      nm.value = st.name || ""; cat.value = st.cat || ""; if (cat.value !== (st.cat || "")) cat.value = ""; annual.value = fmtIn(st.annual || ""); rate.value = fmtIn(st.rate || "");
+      const paint = () => {
+        const c = cats.find((x) => x.id === st.cat);
+        if (c && num(st.annual) > 0) { st.rate = formulaRate(c.cents, st.annual); rate.value = fmtIn(st.rate); }
+        const cost = num(st.annual) > 0 ? num(st.annual) / hrs : 0;
+        val.textContent = (cost ? `Costs the firm about ${fmt0(cost)} per hour` : "") + (cost && num(st.rate) ? " · " : "") + (num(st.rate) ? `charge-out ${fmt0(num(st.rate))} per hour` : "");
+        rate.readOnly = !!(c && num(st.annual) > 0);
+      };
+      nm.oninput = () => { st.name = nm.value; };
+      cat.onchange = () => { st.cat = cat.value; paint(); };
+      annual.oninput = () => { st.annual = annual.value; paint(); };
+      rate.oninput = () => { st.rate = rate.value; paint(); };
+      q(".rm").onclick = () => { settings.staff.splice(i, 1); renderStaff(); };
+      ul.appendChild(li); paint();
+    });
+  }
+  $("addStaffBtn").onclick = () => { settings.staff = settings.staff || []; settings.staff.push({ id: newId(), name: "", cat: "", annual: "", rate: "" }); renderStaff(); };
+  $("sHoursYear").oninput = () => { settings.hoursYear = num($("sHoursYear").value) || 1760; renderStaff(); };
   $("sLogoRemove").onclick = () => { settings.logo = ""; $("sLogo").value = ""; fillSettings(); toast("Logo removed; tap Save"); };
   $("sVat").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; settings.vat = num(b.dataset.v); $("sVat").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); };
   $("sLogo").onchange = () => {
@@ -1835,6 +1901,7 @@
     settings.firm = $("sFirm").value.trim(); settings.tag = $("sTag").value.trim(); settings.contact = $("sContact").value.trim();
     settings.colour = $("sColour").value; settings.rate = num($("sRate").value) || 0; settings.valid = num($("sValid").value) || 30;
     settings.vatNo = $("sVatNo").value.trim(); settings.invPrefix = $("sInvPrefix").value; settings.invNext = Math.max(1, Math.floor(num($("sInvNext").value) || 1)); settings.terms = $("sTerms").value.trim(); settings.bank = $("sBank").value.trim();
+    settings.hoursYear = num($("sHoursYear").value) || 1760; settings.staff = (settings.staff || []).filter((st) => (st.name || "").trim() || num(st.rate) > 0).map((st) => Object.assign({}, st, { name: (st.name || "").trim(), rate: num(st.rate) || 0, annual: num(st.annual) || 0 }));
     save(LS_SETTINGS, settings); applyColour(); toast("Saved"); back();
   };
   function applyColour() { document.documentElement.style.setProperty("--accent", settings.colour || "#1f2a44"); document.querySelector('meta[name=theme-color]').content = settings.colour || "#1f2a44"; }

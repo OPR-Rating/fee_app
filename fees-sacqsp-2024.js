@@ -145,6 +145,11 @@
       { role: "Registered professional principal: over 10 years", rate: 3986 },
       { role: "Specialist work (over 10 years)", rate: 4982 }
     ],
-    hourlyNote: "SACQSP guideline time charge, Board Notice 778 of 2025, effective 1 May 2024, excluding VAT. Other personnel: 27c per hour for each R100 of gross annual remuneration (enter as own rate)."
+    // Board Notice 778 of 2025: other personnel at 27c per hour for each R100 of gross annual remuneration.
+    hourlyFormula: {
+      basis: "gross annual remuneration",
+      categories: [{ id: "other", label: "Other personnel (not a registered principal)", cents: 27 }]
+    },
+    hourlyNote: "SACQSP guideline time charge, Board Notice 778 of 2025, effective 1 May 2024, excluding VAT. Other personnel: 27c per hour for each R100 of gross annual remuneration ('From annual cost')."
   };
 })();

@@ -144,13 +144,22 @@
       stageIds: ["1", "2", "3", "4"],
       note: "Duplication of works (factor 0.25, clause 4.1.5.14): applies to the design stages 1 to 4 of complete units repeated without alteration to the drawings; stages 5 and 6 at full fee."
     },
-    disbursementAttendancePercent: 0,
-    disbursementNote: "Expenses and costs are recovered at cost (clause 4.5).",
+    disbursementAttendancePercent: 10,
+    disbursementNote: "Clause 4.5.1: expenses and costs incurred on behalf of the client are recovered plus a mark-up of 10%. Set the percentage to 0 to charge cost only.",
     disbursementCategories: [
       "Travel and subsistence", "Accommodation", "Printing, plotting and reproduction", "Courier and postage",
       "Specialist services and testing", "Statutory and submission fees", "Site establishment", "Software and data", "Other (agreed with the client)"
     ],
     hourlyRates: [],
-    hourlyNote: "ECSA publishes no Rand hourly rates: the rate is 22c (categories A and B), 17,5c (C) or 16,5c (D) per hour for each R100 of the person's total annual cost of employment, or DPSA indicative rates. Enter your own rate."
+    // Clause 4.4.3: cents per hour for each R100 (or part) of the person's total annual cost of employment (4.4.4).
+    hourlyFormula: {
+      basis: "total annual cost of employment (clause 4.4.4: salary, bonus, medical aid, pension, allowances, UIF, COID, skills levy)",
+      categories: [
+        { id: "AB", label: "Category A or B: recognised expert, partner, director or sole proprietor", cents: 22 },
+        { id: "C",  label: "Category C: registered salaried staff with direct technical responsibility", cents: 17.5 },
+        { id: "D",  label: "Category D: other salaried technical staff under direction", cents: 16.5 }
+      ]
+    },
+    hourlyNote: "ECSA publishes no Rand hourly rates. Clause 4.4.3: 22c (categories A and B), 17,5c (C) or 16,5c (D) per hour for each R100 of the person's total annual cost of employment; choose 'From annual cost' or a staff member from Settings, or enter your own rate (DPSA indicative rates are also allowed)."
   };
 })();
